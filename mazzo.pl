@@ -1,3 +1,7 @@
+% =============================================================================
+% MAZZO — Definizione carte e operazioni sul multiset
+% =============================================================================
+
 % Definizione delle carte
 carta(spia).
 carta(guardia).
@@ -28,42 +32,28 @@ numero_copie(re, 1) :- !.
 numero_copie(contessa, 1) :- !.
 numero_copie(principessa, 1) :- !.
 numero_copie(Carta, 2) :-
-  carta(Carta),
-  !.
+    carta(Carta),
+    !.
 
+% Conta le occorrenze di un elemento in una lista
 conta(_, [], 0).
 conta(X, [X|T], N) :- !, conta(X, T, N1), N is N1 + 1.
 conta(X, [_|T], N) :- conta(X, T, N).
 
 % =============================================================================
-% CONOSCENZA PARZIALE
-% Vista soggettiva di un osservatore (il giocatore che sta ragionando).
-%
-% conoscenza(
-%   Osservatore,      % nome del giocatore che ragiona
-%   ManoPropria,      % lista di carte (nota con certezza)
-%   CarteAvversari,   % lista di giocatore-carta NOTI (da effetti carte come prete)
-%   CartaRimossaNota, % 'sconosciuta' oppure una carta specifica
-%   Scarti            % sempre visibili a tutti
-% )
-% =============================================================================
-
-conoscenza_valida(conoscenza(Osservatore, ManoPropria, CarteAvversari, CartaRimossa, Scarti)) :-
-    atom(Osservatore),
-    lista_di_carte(ManoPropria),
-    is_list(CarteAvversari),  % lista di Nome-Carta per le carte note degli avversari
-    (CartaRimossa = sconosciuta -> true ; carta(CartaRimossa)),
-    lista_di_carte(Scarti).
-
-% =============================================================================
-% MULTISET: il mazzo è rappresentato come lista di coppie carta-conteggio
-% es: [guardia-3, prete-2, barone-1, ...]
+% MULTISET: lista di coppie carta-conteggio, es: [guardia-3, prete-2, ...]
 % =============================================================================
 
 % Aggiorna il conteggio di una carta nel multiset
 aggiorna_copie(Carta, N, [Carta-_ | R], [Carta-N | R]) :- !.
 aggiorna_copie(Carta, N, [H | R],       [H | NR]) :-
     aggiorna_copie(Carta, N, R, NR).
+
+% Rimuove la prima apparizione di un elemento in una lista.
+rimuovi_primo(_, [], []) :- !, fail.
+rimuovi_primo(X, [X|T], T) :- !.
+rimuovi_primo(X, [H|T], [H|R]) :-
+    rimuovi_primo(X, T, R).
 
 % Rimuovi una carta dal multiset (decrementa il conteggio, elimina se 0)
 rimuovi_da_multiset(Carta, Multiset, NuovoMultiset) :-
@@ -76,34 +66,11 @@ rimuovi_da_multiset(Carta, Multiset, NuovoMultiset) :-
     ;   aggiorna_copie(Carta, N1, Multiset, NuovoMultiset)
     ).
 
-% Pesca una carta dal multiset (non-deterministico: quale carta è stata pescata?)
-% Backtracking su questo predicato enumera tutte le carte possibili.
+% Pesca una carta dal multiset (non-deterministico).
+% Backtracking enumera tutte le carte possibili,
+% una volta per ogni copia ancora disponibile nel multiset.
 pesca_da_multiset(Carta, Multiset, NuovoMultiset) :-
     member(Carta-N, Multiset),
     N > 0,
+    between(1, N, _),
     rimuovi_da_multiset(Carta, Multiset, NuovoMultiset).
-
-% Costruisce il multiset iniziale delle carte ancora "libere",
-% sottraendo le carte note: mani dei giocatori + scarti + carta rimossa.
-inizializza_multiset(
-        conoscenza(_, ManoPropria, CarteAvversari, CartaRimossa, Scarti),
-        Multiset) :-
-    % Carte degli avversari note (solo quelle vincolate)
-    findall(C, member(_-C, CarteAvversari), CarteAvversariNote),
-    % Tutte le carte che sappiamo con certezza dove si trovano
-    append(ManoPropria, CarteAvversariNote, Tmp1),
-    append(Tmp1, Scarti, Tmp2),
-    % La carta rimossa: la sottraiamo solo se la conosciamo
-    (CartaRimossa = sconosciuta
-    ->  CarteNote = Tmp2
-    ;   append(Tmp2, [CartaRimossa], CarteNote)
-    ),
-    findall(Carta-CopieLibere,
-        (
-            carta(Carta),
-            numero_copie(Carta, TotCopie),
-            conta(Carta, CarteNote, Usate),
-            CopieLibere is TotCopie - Usate,
-            CopieLibere > 0
-        ),
-        Multiset).
