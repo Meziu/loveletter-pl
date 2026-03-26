@@ -118,8 +118,8 @@ main :-
   giocatore_valido(G2),
   giocatore_valido(G3),
 
-  SR = stato_round([G1, G2, G3], [re, principessa, barone, contessa], [prete, guardia, spia, guardia], principe, pippo),
+  S1 = stato_round([G1, G2, G3], [re, principessa, barone, contessa], [prete, guardia, spia, guardia], principe, pippo),
 
-  gioca_carta(spia, pippo, _, SR, NSR),
-  pesca_carta(pluto, NSR, NNSR),
-  write(NNSR), nl, nl.
+  gioca_carta(spia, pippo, _, S1, S2),
+  pesca_carta(pluto, S2, S3),
+  write(S3), nl, nl.
