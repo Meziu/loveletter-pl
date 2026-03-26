@@ -1,45 +1,14 @@
-% Definizione delle carte
-carta(spia).
-carta(guardia).
-carta(prete).
-carta(barone).
-carta(domestica).
-carta(principe).
-carta(cancelliere).
-carta(re).
-carta(contessa).
-carta(principessa).
-
-% Valore numerico di ogni carta
-valore(spia, 0).
-valore(guardia, 1).
-valore(prete, 2).
-valore(barone, 3).
-valore(domestica, 4).
-valore(principe, 5).
-valore(cancelliere, 6).
-valore(re, 7).
-valore(contessa, 8).
-valore(principessa, 9).
-
-% Numero di copie totali per ogni carta
-numero_copie(guardia, 6) :- !.
-numero_copie(re, 1) :- !.
-numero_copie(contessa, 1) :- !.
-numero_copie(principessa, 1) :- !.
-numero_copie(Carta, 2) :-
-  carta(Carta),
-  !.
-
 % Se si tratta di una lista di carte
-lista_di_carte([H | R]) :-
-  carta(H),
-  lista_di_carte(R),
-  !.
-lista_di_carte([L]) :-
-  carta(L),
-  !.
 lista_di_carte([]).
+lista_di_carte([H | R]) :-
+  (nonvar(H) -> carta(H) ; true),
+  lista_di_carte(R).
+
+% Se si tratta di un giocatore.
+lista_di_giocatori([]).
+lista_di_giocatori([H | R]) :-
+  (nonvar(H) -> giocatore_valido(H) ; true),
+  lista_di_giocatori(R).
 
 % Possibili stati di un giocatore.
 stato_giocatore(dentro).
@@ -64,15 +33,20 @@ giocatore_valido(
     between(1, 2, L)
   ).
 
-/*
-stato_round(
+stato_round_valido(stato_round(Giocatori, Mazzo, Scarti, CartaRimossa, TurnoDi)) :-
+  stato_round_valido(Giocatori, Mazzo, Scarti, CartaRimossa, TurnoDi).
+stato_round_valido(
   Giocatori, % lista
   Mazzo, % lista
   Scarti, % lista
   CartaRimossa, % carta rimossa dal gioco a inizio round
   TurnoDi % indice del giocatore di cui è il turno
-).
-*/
+) :-
+  lista_di_giocatori(Giocatori),
+  is_list(Mazzo), % un multiset sempre istanziato
+  lista_di_carte(Scarti),
+  carta(CartaRimossa),
+  member(giocatore(TurnoDi, _, dentro), Giocatori). % il turno è di un giocatore in gioco.
 
 % Helper per rimuovere la prima apparizione di un elemento in una lista.
 % Controlla anche la sua presenza.
@@ -97,9 +71,10 @@ rimuovi_carta(Carta, Giocatore,
 
 % Pesca una carta dal mazzo e aggiungila alla mano del giocatore
 pesca_carta(Giocatore,
-  stato_round(Giocatori, [CartaPescata | NuovoMazzo], Scarti, CartaRimossa, TurnoDi),
+  stato_round(Giocatori, Mazzo, Scarti, CartaRimossa, TurnoDi),
   stato_round(NuovoGiocatori, NuovoMazzo, Scarti, CartaRimossa, TurnoDi)) :-
   member(giocatore(Giocatore, Mano, StatoGiocatore), Giocatori),
+  pesca_da_multiset(CartaPescata, Mazzo, NuovoMazzo),
   append(Mano, [CartaPescata], NuovoMano),
   aggiorna_giocatore(Giocatore, giocatore(Giocatore, NuovoMano, StatoGiocatore), Giocatori, NuovoGiocatori).
 
@@ -110,16 +85,48 @@ gioca_carta(spia, Giocatore, _, Stato, NuovoStato) :-
 
 :- initialization(main).
 main :-
-  G1 = giocatore(pippo, [guardia, spia], dentro),
-  G2 = giocatore(pluto, [barone], dentro),
+  consult(mazzo),
+  consult(statistica),
+
+  GiocatoreOsservatore = pippo,
+  ManoOsservatore = [guardia, spia],
+  G1 = giocatore(GiocatoreOsservatore, ManoOsservatore, dentro),
   G3 = giocatore(paperino, [], fuori),
 
+  Scarti = [prete, guardia, spia, guardia],
+
+  Conoscenza = conoscenza(
+          GiocatoreOsservatore,
+          ManoOsservatore,        % la tua mano
+          [pluto-barone],
+          sconosciuta,            % non sai cosa è stato rimosso
+          Scarti % scarti visibili
+      ),
+
+  inizializza_multiset(Conoscenza, MultisetPrePluto),
+
   giocatore_valido(G1),
-  giocatore_valido(G2),
   giocatore_valido(G3),
 
-  S1 = stato_round([G1, G2, G3], [re, principessa, barone, contessa], [prete, guardia, spia, guardia], principe, pippo),
+  findall(ManoPluto-MultisetFinale,
+      (
+          % Entrambe le pescate dentro findall, così backtracking le esplora entrambe
+          pesca_da_multiset(CartaPluto, MultisetPrePluto, Multiset),
+          G2 = giocatore(pluto, [barone], dentro),
+          giocatore_valido(G2),
 
-  gioca_carta(spia, pippo, _, S1, S2),
-  pesca_carta(pluto, S2, S3),
-  write(S3), nl, nl.
+          S1 = stato_round([G1, G2, G3], Multiset, Scarti, principessa, pippo),
+          stato_round_valido(S1),
+          gioca_carta(spia, pippo, _, S1, S2),
+          pesca_carta(pluto, S2, S3),
+          S3 = stato_round(G3s, MultisetFinale, _, _, _),
+          member(giocatore(pluto, ManoPluto, _), G3s)
+      ),
+      Possibilita
+  ),
+  write('Possibili mani di pluto:'), nl,
+      forall(member(Mano-Rim, Possibilita),
+          (write('  '), write(Mano), write(' | rimanente: '), write(Rim), nl)),
+
+  nl, write('Probabilità che pluto abbia ciascuna carta:'), nl,
+  stampa_probabilita(Possibilita).
