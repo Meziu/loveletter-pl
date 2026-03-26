@@ -57,7 +57,7 @@ main :-
     % -------------------------------------------------------------------------
 
     nl, write('=== ANALISI: probabilità mano di pluto ==='), nl,
-    pesca_possibile(C2, Mondi),
+    pesca_possibile(C2, pluto, Mondi),
     stampa_probabilita(Mondi),
 
     carta_piu_probabile(C2, pluto, CartaConsigliata),

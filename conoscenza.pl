@@ -87,24 +87,19 @@ aggiorna_conoscenza(
     ;   NuoveCarteInMano = CarteInMano),
     append(Scarti, [Carta], NuoviScarti).
 
-% -----------------------------------------------------------------------------
-% Analisi probabilistica
-%
-% Costruisce tutti i mondi possibili compatibili con la conoscenza corrente,
-% simulando la sequenza di mosse dentro findall con gioca_carta/pesca_carta.
-%
-% mondi_possibili(+Conoscenza, +Giocatori, +SimulazioneGoal, -Mondi)
-%   SimulazioneGoal è un goal che riceve StatoIn e produce StatoOut,
-%   usato per esplorare mosse future prima di interrogare le probabilità.
-% -----------------------------------------------------------------------------
-
 % Costruisce la lista di mondi (ManoGiocatore-MultisetRimanente) dopo un'azione di pesca.
-pesca_possibile(Conoscenza, Mondi) :-
+pesca_possibile(Conoscenza, Giocatore, Mondi) :-
+  Conoscenza = conoscenza(CarteInMano, _, _),
   inizializza_multiset(Conoscenza, M0),
-  findall(Mano-M1,
+  findall(Mano-M2,
       (
+        member(Giocatore-CartaInMano, CarteInMano) ->
           pesca_da_multiset(Carta, M0, M1),
-          Mano = [Carta]    % pluto ha pescato, mano attuale ignota
+          Mano = [CartaInMano, Carta]
+        ;
+          pesca_da_multiset(CartaInMano, M0, M1), % La prima è una "pesca fittizia" per indicare una carta a caso tra le disponibili
+          pesca_da_multiset(Carta, M1, M2),
+          Mano = [CartaInMano, Carta]
       ),
       Mondi
   ).
