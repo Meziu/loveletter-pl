@@ -86,33 +86,32 @@ aggiorna_giocatore(Giocatore, NuovoGiocatore, [giocatore(Giocatore, _, _) | R], 
 aggiorna_giocatore(Giocatore, NuovoGiocatore, [P | R], [P | NR]) :-
     aggiorna_giocatore(Giocatore, NuovoGiocatore, R, NR).
 
-giocatore_membro(Nome, Giocatori, _, _, _, _, giocatore(Nome, Mano, Stato)) :-
-    member(giocatore(Nome, Mano, Stato), Giocatori).
+% Rimuovi una carta dalla mano di un giocatore e inseriscila negli scarti
+rimuovi_carta(Carta, Giocatore,
+  stato_round(Giocatori, Mazzo, Scarti, CartaRimossa, TurnoDi),
+  stato_round(NuovoGiocatori, Mazzo, NuovoScarti, CartaRimossa, TurnoDi)) :-
+  member(giocatore(Giocatore, Mano, StatoGiocatore), Giocatori),
+  rimuovi_primo(Carta, Mano, NuovoMano),
+  aggiorna_giocatore(Giocatore, giocatore(Giocatore, NuovoMano, StatoGiocatore), Giocatori, NuovoGiocatori),
+  append(Scarti, [Carta], NuovoScarti).
+
+% Pesca una carta dal mazzo e aggiungila alla mano del giocatore
+pesca_carta(Giocatore,
+  stato_round(Giocatori, [CartaPescata | NuovoMazzo], Scarti, CartaRimossa, TurnoDi),
+  stato_round(NuovoGiocatori, NuovoMazzo, Scarti, CartaRimossa, TurnoDi)) :-
+  member(giocatore(Giocatore, Mano, StatoGiocatore), Giocatori),
+  append(Mano, [CartaPescata], NuovoMano),
+  aggiorna_giocatore(Giocatore, giocatore(Giocatore, NuovoMano, StatoGiocatore), Giocatori, NuovoGiocatori).
 
 % gioca_carta(Carta, Giocatore, Bersaglio, StatoRoundIn, StatoRoundOut).
 % Senza punteggi, la carta spia è una carta senza effetto
-gioca_carta(spia, Giocatore, _,
-    stato_round(Giocatori, Mazzo, Scarti, CartaRimossa, TurnoDi),
-    stato_round(NuovoGiocatori, Mazzo, NuovoScarti, CartaRimossa, TurnoDi)) :-
-  member(giocatore(Giocatore, Mano, StatoGiocatore), Giocatori),
-  rimuovi_primo(spia, Mano, NuovoMano),
-  aggiorna_giocatore(Giocatore, giocatore(Giocatore, NuovoMano, StatoGiocatore), Giocatori, NuovoGiocatori),
-  append(Scarti, [spia], NuovoScarti).
-
-% Senza punteggi, la carta spia è una carta senza effetto
-gioca_carta(guardia, G, _,
-    stato_round(Giocatori, Mazzo, Scarti, CartaRimossa, TurnoDi),
-    stato_round(NuovoGiocatori, Mazzo, NuovoScarti, CartaRimossa, TurnoDi)) :-
-  G = giocatore(Giocatore, Mano, StatoGiocatore),
-  member(G, Giocatori),
-  rimuovi_primo(spia, Mano, NuovoMano),
-  aggiorna_giocatore(Giocatore, giocatore(Giocatore, NuovoMano, StatoGiocatore), Giocatori, NuovoGiocatori),
-  append(Scarti, [spia], NuovoScarti).
+gioca_carta(spia, Giocatore, _, Stato, NuovoStato) :-
+    rimuovi_carta(spia, Giocatore, Stato, NuovoStato).
 
 :- initialization(main).
 main :-
   G1 = giocatore(pippo, [guardia, spia], dentro),
-  G2 = giocatore(pluto, [spia], dentro),
+  G2 = giocatore(pluto, [barone], dentro),
   G3 = giocatore(paperino, [], fuori),
 
   giocatore_valido(G1),
@@ -122,4 +121,5 @@ main :-
   SR = stato_round([G1, G2, G3], [re, principessa, barone, contessa], [prete, guardia, spia, guardia], principe, pippo),
 
   gioca_carta(spia, pippo, _, SR, NSR),
-  write(NSR), nl, nl.
+  pesca_carta(pluto, NSR, NNSR),
+  write(NNSR), nl, nl.
