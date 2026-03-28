@@ -26,6 +26,7 @@ main :-
     Scarti = [prete, guardia, spia, guardia],
 
     C0 = conoscenza(
+        [pippo, pluto],
         [pippo-guardia, pippo-spia, pluto-barone],     % sai dalla carta prete che pluto ha il barone
         sconosciuta,
         Scarti
@@ -76,7 +77,8 @@ main :-
 % Stampa la conoscenza corrente
 % -----------------------------------------------------------------------------
 
-stampa_conoscenza(conoscenza(Avversari, CartaRimossa, Scarti)) :-
-    format("  Carte in mano note: ~w~n", [Avversari]),
+stampa_conoscenza(conoscenza(Giocatori, CarteNote, CartaRimossa, Scarti)) :-
+    format("  Giocatori in partita: ~w~n", [Giocatori]),
+    format("  Carte in mano note: ~w~n", [CarteNote]),
     format("  Carta rimossa: ~w~n", [CartaRimossa]),
     format("  Scarti: ~w~n", [Scarti]).

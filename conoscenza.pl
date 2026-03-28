@@ -2,40 +2,36 @@
 % CONOSCENZA — Vista soggettiva di un giocatore
 %
 % conoscenza(
-%   CarteInMano,       % lista di Nome-Carta per le carte note dei giocatori
-%   CartaRimossa,      % 'sconosciuta' oppure una carta specifica
-%   Scarti             % lista di carte visibili a tutti
+%   Giocatori,        % lista dei nomi dei giocatori
+%   CarteOsservate,   % lista di Nome-Carta per le carte note dei giocatori
+%   CartaRimossa,     % 'sconosciuta' oppure una carta specifica
+%   Scarti            % lista di carte visibili a tutti
 % )
 %
 % =============================================================================
-
-:- use_module(library(lists)).
-:- use_module(library(apply)).
 
 % -----------------------------------------------------------------------------
 % Validazione
 % -----------------------------------------------------------------------------
 
-conoscenza_valida(conoscenza(CarteInMano, CartaRimossa, Scarti)) :-
+conoscenza_valida(conoscenza(_, CarteInMano, CartaRimossa, Scarti)) :-
     is_list(CarteInMano),
     (CartaRimossa = sconosciuta -> true ; carta(CartaRimossa)),
     lista_di_carte(Scarti).
 
+nuova_conoscenza(Giocatori, conoscenza(Giocatori, [], sconosciuta, [])).
+
 % -----------------------------------------------------------------------------
-% Multiset delle carte libere (non ancora osservate)
+% Multiset delle carte in gioco
 %
-% Sottraendo dal mazzo completo: mano propria + carte avversari note + scarti
-% + carta rimossa (se nota).
+% Sottraendo dal mazzo completo: pila degli scarti + carta rimossa (se nota).
 % -----------------------------------------------------------------------------
 
 inizializza_multiset(
-        conoscenza(CarteInMano, CartaRimossa, Scarti),
-        Multiset) :-
-    findall(C, member(_-C, CarteInMano), CarteInManoNote),
-    append(CarteInManoNote, Scarti, Tmp2),
+        conoscenza(_, _, CartaRimossa, Scarti), Multiset) :-
     (CartaRimossa = sconosciuta
-    ->  CarteNote = Tmp2
-    ;   append(Tmp2, [CartaRimossa], CarteNote)
+    ->  CarteNote = Scarti
+    ;   append(Scarti, [CartaRimossa], CarteNote)
     ),
     findall(Carta-CopieLibere,
         (
@@ -62,16 +58,16 @@ inizializza_multiset(
 % -----------------------------------------------------------------------------
 
 aggiorna_conoscenza(
-        conoscenza(CarteInMano, Rimossa, Scarti),
+        conoscenza(Giocatori, CarteInMano, Rimossa, Scarti),
         carta_giocata(Giocatore, Carta),
-        conoscenza(NuoveCarteInMano, Rimossa, NuoviScarti)) :-
+        conoscenza(Giocatori, NuoveCarteInMano, Rimossa, NuoviScarti)) :-
     rimuovi_primo(Giocatore-Carta, CarteInMano, NuoveCarteInMano),
     append(Scarti, [Carta], NuoviScarti).
 
 aggiorna_conoscenza(
-        conoscenza(CarteInMano, Rimossa, Scarti),
+        conoscenza(Giocatori, CarteInMano, Rimossa, Scarti),
         carta_vista(Giocatore, Carta),
-        conoscenza(NuoveCarteInMano, Rimossa, Scarti)) :-
+        conoscenza(Giocatori, NuoveCarteInMano, Rimossa, Scarti)) :-
     % Aggiunge o sovrascrive la carta nota dell'avversario
     (rimuovi_primo(Giocatore-_, CarteInMano, Tmp)
     ->  true
@@ -79,17 +75,45 @@ aggiorna_conoscenza(
     NuoveCarteInMano = [Giocatore-Carta | Tmp].
 
 aggiorna_conoscenza(
-        conoscenza(CarteInMano, Rimossa, Scarti),
+        conoscenza(Giocatori, CarteInMano, Rimossa, Scarti),
         giocatore_eliminato(Giocatore, Carta),
-        conoscenza(NuoveCarteInMano, Rimossa, NuoviScarti)) :-
+        conoscenza(Giocatori, NuoveCarteInMano, Rimossa, NuoviScarti)) :-
     (rimuovi_primo(Giocatore-_, CarteInMano, NuoveCarteInMano)
     ->  true
     ;   NuoveCarteInMano = CarteInMano),
     append(Scarti, [Carta], NuoviScarti).
 
+% Assegna ad ogni giocatore una carta, come nello stato solito di una partita.
+mano_giocatori([], _, M, [], M).
+% con carta osservata
+mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], MFinale) :-
+    member(G-C, CarteOsservate),
+    rimuovi_primo(G-C, CarteOsservate, CarteOsservateRestanti),
+    pesca_da_multiset(C, M1, M2),
+    mano_giocatori(Gs, CarteOsservateRestanti, M2, R, MFinale).
+% senza carta osservata
+mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], MFinale) :-
+    \+ member(G-_, CarteOsservate),
+    pesca_da_multiset(C, M1, M2),
+    mano_giocatori(Gs, CarteOsservate, M2, R, MFinale).
+
+% Costruisce la lista di stati di gioco possibili data una conoscenza.
+%
+% Struttura di un mondo:
+% [Giocatore-CartaInMano, ...]-[CartaNelMazzoORimossa-NumeroDiCopie, ...]
+mondi_possibili(Conoscenza, Mondi) :-
+  Conoscenza = conoscenza(Giocatori, CarteOsservate, _, _),
+  inizializza_multiset(Conoscenza, M1),
+  findall(ManoGiocatori-MultisetFinale,
+      (
+        mano_giocatori(Giocatori, CarteOsservate, M1, ManoGiocatori, MultisetFinale)
+      ),
+      Mondi
+  ).
+
 % Costruisce la lista di mondi (ManoGiocatore-MultisetRimanente) dopo un'azione di pesca.
 pesca_possibile(Conoscenza, Giocatore, Mondi) :-
-  Conoscenza = conoscenza(CarteInMano, _, _),
+  Conoscenza = conoscenza(_, CarteInMano, _, _),
   inizializza_multiset(Conoscenza, M0),
   findall(Mano-M2,
       (
@@ -112,7 +136,7 @@ probabilita_carta(Conoscenza, Giocatore, Carta, Prob) :-
         (
             pesca_da_multiset(_, Multiset, _),  % un mondo per ogni carta pescabile
             % La mano del giocatore è la sua carta nota (se presente) + la pescata
-            conoscenza(_, _, Avversari, _, _) = Conoscenza,
+            conoscenza(_, Avversari, _, _) = Conoscenza,
             (member(Giocatore-CartaNota, Avversari)
             ->  Mano = [CartaNota]
             ;   Mano = [])
@@ -129,7 +153,7 @@ probabilita_carta(Conoscenza, Giocatore, Carta, Prob) :-
 %   Restituisce la carta che il Giocatore ha più probabilità di tenere in mano.
 %   Se la carta è nota con certezza (da effetto prete), la restituisce direttamente.
 carta_piu_probabile(Conoscenza, Giocatore, Carta) :-
-    Conoscenza = conoscenza(CarteInMano, _, _),
+    Conoscenza = conoscenza(_, CarteInMano, _, _),
     (member(Giocatore-Carta, CarteInMano)
     ->  true  % carta già nota con certezza
     ;   inizializza_multiset(Conoscenza, Multiset),
