@@ -23,7 +23,7 @@ main :-
     % Non sai quale carta è stata rimossa a inizio round.
     % -------------------------------------------------------------------------
 
-    Scarti = [prete, guardia, spia, guardia],
+    Scarti = [prete, guardia, spia, guardia, guardia, guardia],
 
     C0 = conoscenza(
         [pippo, pluto],
@@ -58,8 +58,8 @@ main :-
     % -------------------------------------------------------------------------
 
     nl, write('=== ANALISI: probabilità mano di pluto ==='), nl,
-    pesca_possibile(C2, pluto, Mondi),
-    stampa_probabilita(Mondi),
+    pesca_possibile(C2, pluto, Stati),
+    stampa_probabilita(Stati),
 
     carta_piu_probabile(C2, pluto, CartaConsigliata),
     nl, format("Carta consigliata da indovinare con la guardia: ~w~n", [CartaConsigliata]),

@@ -50,7 +50,7 @@ aggiorna_copie(Carta, N, [H | R],       [H | NR]) :-
     aggiorna_copie(Carta, N, R, NR).
 
 % Rimuove la prima apparizione di un elemento in una lista.
-rimuovi_primo(_, [], []) :- !, fail.
+rimuovi_primo(_, [], []).
 rimuovi_primo(X, [X|T], T) :- !.
 rimuovi_primo(X, [H|T], [H|R]) :-
     rimuovi_primo(X, T, R).

@@ -1,5 +1,5 @@
 % =============================================================================
-% CONOSCENZA — Vista soggettiva di un giocatore
+% CONOSCENZA — Vista parziale dello stato di gioco
 %
 % conoscenza(
 %   Giocatori,        % lista dei nomi dei giocatori
@@ -62,7 +62,8 @@ aggiorna_conoscenza(
         carta_giocata(Giocatore, Carta),
         conoscenza(Giocatori, NuoveCarteInMano, Rimossa, NuoviScarti)) :-
     rimuovi_primo(Giocatore-Carta, CarteInMano, NuoveCarteInMano),
-    append(Scarti, [Carta], NuoviScarti).
+    NuoviScarti = [Carta|Scarti],
+    !.
 
 aggiorna_conoscenza(
         conoscenza(Giocatori, CarteInMano, Rimossa, Scarti),
@@ -91,28 +92,23 @@ mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], MFinale) :-
     rimuovi_primo(G-C, CarteOsservate, CarteOsservateRestanti),
     pesca_da_multiset(C, M1, M2),
     mano_giocatori(Gs, CarteOsservateRestanti, M2, R, MFinale).
-% senza carta osservata
+% senza alcuna carta osservata
 mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], MFinale) :-
     \+ member(G-_, CarteOsservate),
     pesca_da_multiset(C, M1, M2),
     mano_giocatori(Gs, CarteOsservate, M2, R, MFinale).
 
-% Costruisce la lista di stati di gioco possibili data una conoscenza.
+% Stato di gioco possibile data una conoscenza. Non deterministico.
 %
-% Struttura di un mondo:
+% Struttura di uno stato:
 % [Giocatore-CartaInMano, ...]-[CartaNelMazzoORimossa-NumeroDiCopie, ...]
-mondi_possibili(Conoscenza, Mondi) :-
-  Conoscenza = conoscenza(Giocatori, CarteOsservate, _, _),
-  inizializza_multiset(Conoscenza, M1),
-  findall(ManoGiocatori-MultisetFinale,
-      (
-        mano_giocatori(Giocatori, CarteOsservate, M1, ManoGiocatori, MultisetFinale)
-      ),
-      Mondi
-  ).
+stato_possibile(C, ManoGiocatori-M2) :-
+  C = conoscenza(Giocatori, CarteOsservate, _, _),
+  inizializza_multiset(C, M1),
+  mano_giocatori(Giocatori, CarteOsservate, M1, ManoGiocatori, M2).
 
-% Costruisce la lista di mondi (ManoGiocatore-MultisetRimanente) dopo un'azione di pesca.
-pesca_possibile(Conoscenza, Giocatore, Mondi) :-
+% Costruisce la lista di stati (ManoGiocatore-MultisetRimanente) dopo un'azione di pesca.
+pesca_possibile(Conoscenza, Giocatore, Stati) :-
   Conoscenza = conoscenza(_, CarteInMano, _, _),
   inizializza_multiset(Conoscenza, M0),
   findall(Mano-M2,
@@ -125,37 +121,19 @@ pesca_possibile(Conoscenza, Giocatore, Mondi) :-
           pesca_da_multiset(Carta, M1, M2),
           Mano = [CartaInMano, Carta]
       ),
-      Mondi
+      Stati
   ).
 
-% probabilita_carta(+Conoscenza, +Giocatore, +Carta, -Prob)
-%   Prob è un numero tra 0.0 e 1.0
-probabilita_carta(Conoscenza, Giocatore, Carta, Prob) :-
-    inizializza_multiset(Conoscenza, Multiset),
-    findall(Mano,
-        (
-            pesca_da_multiset(_, Multiset, _),  % un mondo per ogni carta pescabile
-            % La mano del giocatore è la sua carta nota (se presente) + la pescata
-            conoscenza(_, Avversari, _, _) = Conoscenza,
-            (member(Giocatore-CartaNota, Avversari)
-            ->  Mano = [CartaNota]
-            ;   Mano = [])
-        ),
-        _MondiGrezzi),
-    % Calcolo diretto: quante copie di Carta sono libere rispetto al totale libero
-    findall(N, member(_-N, Multiset), Counts),
-    sumlist(Counts, Totale),
-    (member(Carta-NCarta, Multiset)
-    ->  Prob is NCarta / Totale
-    ;   Prob is 0.0).
-
-% carta_piu_probabile(+Conoscenza, +Giocatore, -Carta)
-%   Restituisce la carta che il Giocatore ha più probabilità di tenere in mano.
-%   Se la carta è nota con certezza (da effetto prete), la restituisce direttamente.
-carta_piu_probabile(Conoscenza, Giocatore, Carta) :-
-    Conoscenza = conoscenza(_, CarteInMano, _, _),
-    (member(Giocatore-Carta, CarteInMano)
-    ->  true  % carta già nota con certezza
-    ;   inizializza_multiset(Conoscenza, Multiset),
-        aggregate_all(max(N, C), member(C-N, Multiset), max(_, Carta))
-    ).
+% Restituisce la carta che il Giocatore ha più probabilità di avere in mano. Non deterministico.
+carta_piu_probabile(Conoscenza, Giocatore, CartaProbabile) :-
+  aggregate_all(bag(N-C), (
+    carta(C),
+    aggregate_all(count, (
+        stato_possibile(Conoscenza, CarteInMano-_),
+        member(Giocatore-C, CarteInMano)
+      ),
+      N
+    )
+  ), Coppie),
+  max_member(Max-_, Coppie),
+  member(Max-CartaProbabile, Coppie).

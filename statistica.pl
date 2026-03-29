@@ -1,21 +1,18 @@
 % =============================================================================
-% STATISTICA — Aggregazione e stampa probabilità su una lista di mondi
-%
-% Un "mondo" è un termine ManoGiocatore-MultisetRimanente.
-% Questa lista è prodotta da mondi_possibili/5 in conoscenza.pl.
+% STATISTICA — Aggregazione e stampa probabilità su una lista di stati
 % =============================================================================
 
-% Conta i mondi in cui il giocatore ha una certa carta
-conteggio_mondi_carta(Carta, Mondi, Totale, Favorevoli) :-
-    length(Mondi, Totale),
-    include([Mano-_]>>(member(Carta, Mano)), Mondi, MondiConCarta),
-    length(MondiConCarta, Favorevoli).
+% Conta gli stato in cui il giocatore ha una certa carta
+conteggio_stati_carta(Carta, Stati, Totale, Favorevoli) :-
+    length(Stati, Totale),
+    include([Mano-_]>>(member(Carta, Mano)), Stati, StatiConCarta),
+    length(StatiConCarta, Favorevoli).
 
 % Stampa la probabilità per ogni carta
-stampa_probabilita(Mondi) :-
+stampa_probabilita(Stati) :-
     forall(carta(Carta),
         (
-            conteggio_mondi_carta(Carta, Mondi, Totale, Favorevoli),
+            conteggio_stati_carta(Carta, Stati, Totale, Favorevoli),
             Prob is Favorevoli / Totale * 100,
             format("  ~w: ~d/~d (~2f%)~n", [Carta, Favorevoli, Totale, Prob])
         )
