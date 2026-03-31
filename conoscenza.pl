@@ -10,10 +10,6 @@
 %
 % =============================================================================
 
-% -----------------------------------------------------------------------------
-% Validazione
-% -----------------------------------------------------------------------------
-
 conoscenza_valida(conoscenza(_, CarteInMano, CartaRimossa, Scarti)) :-
     is_list(CarteInMano),
     (CartaRimossa = sconosciuta -> true ; carta(CartaRimossa)),
@@ -31,17 +27,17 @@ inizializza_multiset(
         conoscenza(_, _, CartaRimossa, Scarti), Multiset) :-
     (CartaRimossa = sconosciuta
     ->  CarteNote = Scarti
-    ;   append(Scarti, [CartaRimossa], CarteNote)
+    ;   CarteNote = [CartaRimossa | Scarti]
     ),
     findall(Carta-CopieLibere,
-        (
-            carta(Carta),
-            numero_copie(Carta, TotCopie),
-            conta(Carta, CarteNote, Usate),
-            CopieLibere is TotCopie - Usate,
-            CopieLibere > 0
-        ),
-        Multiset).
+      (
+          carta(Carta),
+          numero_copie(Carta, TotCopie),
+          conta(Carta, CarteNote, Usate),
+          CopieLibere is TotCopie - Usate,
+          CopieLibere >= 0
+      ),
+      Multiset).
 
 % -----------------------------------------------------------------------------
 % Aggiornamento della conoscenza dopo un evento osservato
@@ -49,17 +45,15 @@ inizializza_multiset(
 % aggiorna_conoscenza(+Conoscenza, +Evento, -NuovaConoscenza)
 %
 % Tipi di evento:
-%   carta_giocata(Giocatore, Carta)
-%     — un giocatore ha giocato una carta (va negli scarti)
-%   carta_vista(Giocatore, Carta)
-%     — hai visto la carta di un avversario (es. effetto prete)
-%   giocatore_eliminato(Giocatore, Carta)
-%     — un giocatore è uscito e ha scartato la sua carta
+%   - carta_scartata(Giocatore, Carta)
+%   - carta_vista(Giocatore, Carta)
+%   - giocatore_eliminato(Giocatore, Carta)
+%     un giocatore esce dal gioco e scarta la sua mano
 % -----------------------------------------------------------------------------
 
 aggiorna_conoscenza(
         conoscenza(Giocatori, CarteInMano, Rimossa, Scarti),
-        carta_giocata(Giocatore, Carta),
+        carta_scartata(Giocatore, Carta),
         conoscenza(Giocatori, NuoveCarteInMano, Rimossa, NuoviScarti)) :-
     rimuovi_primo(Giocatore-Carta, CarteInMano, NuoveCarteInMano),
     NuoviScarti = [Carta|Scarti],
@@ -70,19 +64,16 @@ aggiorna_conoscenza(
         carta_vista(Giocatore, Carta),
         conoscenza(Giocatori, NuoveCarteInMano, Rimossa, Scarti)) :-
     % Aggiunge o sovrascrive la carta nota dell'avversario
-    (rimuovi_primo(Giocatore-_, CarteInMano, Tmp)
-    ->  true
-    ;   Tmp = CarteInMano),
+    rimuovi_primo(Giocatore-_, CarteInMano, Tmp),
     NuoveCarteInMano = [Giocatore-Carta | Tmp].
 
 aggiorna_conoscenza(
         conoscenza(Giocatori, CarteInMano, Rimossa, Scarti),
-        giocatore_eliminato(Giocatore, Carta),
-        conoscenza(Giocatori, NuoveCarteInMano, Rimossa, NuoviScarti)) :-
-    (rimuovi_primo(Giocatore-_, CarteInMano, NuoveCarteInMano)
-    ->  true
-    ;   NuoveCarteInMano = CarteInMano),
-    append(Scarti, [Carta], NuoviScarti).
+        giocatore_eliminato(Giocatore, CartaScartata),
+        conoscenza(NuovoGiocatori, NuoveCarteInMano, Rimossa, NuoviScarti)) :-
+    delete(CarteInMano, Giocatore-_, NuoveCarteInMano),
+    delete(Giocatori, Giocatore, NuovoGiocatori),
+    NuoviScarti = [CartaScartata|Scarti].
 
 % Assegna ad ogni giocatore una carta, come nello stato solito di una partita.
 mano_giocatori([], _, M, [], M).
@@ -101,17 +92,19 @@ mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], MFinale) :-
 % Stato di gioco possibile data una conoscenza. Non deterministico.
 %
 % Struttura di uno stato:
-% [Giocatore-CartaInMano, ...]-[CartaNelMazzoORimossa-NumeroDiCopie, ...]
-stato_possibile(C, ManoGiocatori-M2) :-
+% stato([Giocatore-CartaInMano, ...], [CartaNelMazzo-NumeroDiCopie, ...], CartaRimossa)
+stato_possibile(C, stato(ManoGiocatori, M2, CartaRimossa)) :-
   C = conoscenza(Giocatori, CarteOsservate, _, _),
-  inizializza_multiset(C, M1),
+  inizializza_multiset(C, M0),
+  pesca_da_multiset(CartaRimossa, M0, M1),
   mano_giocatori(Giocatori, CarteOsservate, M1, ManoGiocatori, M2).
 
 % Costruisce la lista di stati (ManoGiocatore-MultisetRimanente) dopo un'azione di pesca.
 pesca_possibile(Conoscenza, Giocatore, Stati) :-
   Conoscenza = conoscenza(_, CarteInMano, _, _),
-  inizializza_multiset(Conoscenza, M0),
-  findall(Mano-M2,
+  inizializza_multiset(Conoscenza, M),
+  pesca_da_multiset(CartaRimossa, M, M0),
+  findall(stato(Mano, M2, CartaRimossa),
       (
         member(Giocatore-CartaInMano, CarteInMano) ->
           pesca_da_multiset(Carta, M0, M1),
@@ -129,7 +122,7 @@ carta_piu_probabile(Conoscenza, Giocatore, CartaProbabile) :-
   aggregate_all(bag(N-C), (
     carta(C),
     aggregate_all(count, (
-        stato_possibile(Conoscenza, CarteInMano-_),
+        stato_possibile(Conoscenza, stato(CarteInMano, _, _)),
         member(Giocatore-C, CarteInMano)
       ),
       N
