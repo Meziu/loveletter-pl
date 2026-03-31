@@ -75,19 +75,38 @@ aggiorna_conoscenza(
     delete(Giocatori, Giocatore, NuovoGiocatori),
     NuoviScarti = [CartaScartata|Scarti].
 
+% Informazioni sulla mano:
+%
+% carta_posseduta(Giocatore, Carta) - mutuamente esclusiva alle altre info
+% carta_non_posseduta(Giocatore, Carta)
+% carta_superiore_a(Giocatore, Valore)
+% carta_uguale(Giocatore, Giocatore)
+
+vincoli(G, C, CarteOsservate) :-
+  \+ (
+      member(carta_non_posseduta(G, X), CarteOsservate),
+      C = X
+  ),
+  \+ (
+      member(carta_superiore_a(G, Min), CarteOsservate),
+      valore(C, V),
+      V =< Min
+  ).
+
 % Assegna ad ogni giocatore una carta, come nello stato solito di una partita.
 mano_giocatori([], _, M, [], M).
-% con carta osservata
+% con carta nota
 mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], MFinale) :-
-    member(G-C, CarteOsservate),
-    rimuovi_primo(G-C, CarteOsservate, CarteOsservateRestanti),
-    pesca_da_multiset(C, M1, M2),
-    mano_giocatori(Gs, CarteOsservateRestanti, M2, R, MFinale).
-% senza alcuna carta osservata
+  member(carta_posseduta(G, C), CarteOsservate),
+  rimuovi_primo(carta_posseduta(G, C), CarteOsservate, CarteOsservateRestanti),
+  pesca_da_multiset(C, M1, M2),
+  mano_giocatori(Gs, CarteOsservateRestanti, M2, R, MFinale).
+% senza una carta nota
 mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], MFinale) :-
-    \+ member(G-_, CarteOsservate),
-    pesca_da_multiset(C, M1, M2),
-    mano_giocatori(Gs, CarteOsservate, M2, R, MFinale).
+  \+ member(carta_posseduta(G, _), CarteOsservate),
+  pesca_da_multiset(C, M1, M2),
+  vincoli(G, C, CarteOsservate),
+  mano_giocatori(Gs, CarteOsservate, M2, R, MFinale).
 
 % Stato di gioco possibile data una conoscenza. Non deterministico.
 %
