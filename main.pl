@@ -51,15 +51,15 @@ main :-
     aggiorna_conoscenza(C1, carta_scartata(pluto, barone), C2),
 
     nl, write('=== DOPO: pluto gioca il barone ==='), nl,
-    stampa_conoscenza(C2),
+    stampa_conoscenza(C2).
 
     % -------------------------------------------------------------------------
     % Evento 3: pluto pesca.
     % -------------------------------------------------------------------------
 
-    nl, write('=== ANALISI: probabilità mano di pluto ==='), nl,
-    pesca_possibile(C2, pluto, Stati),
-    stampa_probabilita(Stati).
+    %nl, write('=== ANALISI: probabilità mano di pluto ==='), nl,
+    %pesca_possibile(C2, pluto, Stati),
+    %stampa_probabilita(Stati).
 
     %carta_piu_probabile(C2, pluto, CartaConsigliata),
     %nl, format("Carta consigliata da indovinare con la guardia: ~w~n", [CartaConsigliata]),
