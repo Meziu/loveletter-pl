@@ -43,14 +43,14 @@ inizializza_multiset(
 %
 % carta_posseduta(Giocatore, Carta) - mutuamente esclusiva alle altre info
 % carta_non_posseduta(Giocatore, Carta)
-% carta_superiore_a(Giocatore, Valore)
+% carta_superiore(Giocatore, Valore)
 % carta_uguale(Giocatore, Giocatore)
 
-info(G, carta_posseduta(G, _)).
-info(G, carta_non_posseduta(G, _)).
-info(G, carta_superiore_a(G, _)).
-info(G, carta_uguale(G, _)).
-info(G, carta_uguale(_, G)).
+riguarda(G, carta_posseduta(G, _)).
+riguarda(G, carta_non_posseduta(G, _)).
+riguarda(G, carta_superiore(G, _)).
+riguarda(G, carta_uguale(G, _)).
+riguarda(G, carta_uguale(_, G)).
 
 vincoli(G, C, Informazioni, CarteInMano, PosizioneNelMazzo) :-
   % Anzichè usare ->, per favorire backtracking si usa una logica inversa.
@@ -106,30 +106,47 @@ mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale) :-
 %     un giocatore esce dal gioco e scarta la sua mano
 % -----------------------------------------------------------------------------
 
-aggiorna_conoscenza(
+% Se è nota una relazione di "uguaglianza" con un altro giocatore
+reg_evento(
+        conoscenza(Giocatori, Informazioni, Rimossa, Scarti),
+        carta_scartata(Giocatore, Carta),
+        CF) :-
+    member(CU, Informazioni),
+    (
+      CU = carta_uguale(Giocatore, Giocatore2);
+      CU = carta_uguale(Giocatore2, Giocatore)
+    ),
+    !,
+    delete(Informazioni, CU, Info2),
+    reg_evento(conoscenza(Giocatori, Info2, Rimossa, Scarti), carta_scartata(Giocatore, Carta), C2),
+    reg_evento(C2, carta_vista(Giocatore2, Carta), CF).
+% Se NON è nota una relazione di "uguaglianza" con un altro giocatore
+reg_evento(
         conoscenza(Giocatori, Informazioni, Rimossa, Scarti),
         carta_scartata(Giocatore, Carta),
         conoscenza(Giocatori, NuoveInformazioni, Rimossa, NuoviScarti)) :-
-    rimuovi_primo(Giocatore-Carta, Informazioni, NuoveInformazioni),
+    writeln(Informazioni),
+    exclude(riguarda(Giocatore), Informazioni, NuoveInformazioni),
     NuoviScarti = [Carta | Scarti].
 
-aggiorna_conoscenza(
+reg_evento(
         conoscenza(Giocatori, Informazioni, Rimossa, Scarti),
         carta_vista(Giocatore, Carta),
         conoscenza(Giocatori, NuoveInformazioni, Rimossa, Scarti)) :-
-    % Aggiunge o sovrascrive la carta nota dell'avversario
-    delete(info(Giocatore, _), Informazioni, Tmp),
+    % Non lavoriamo su "carta_uguale" poiché lo considera il generatore di possibili stati
+    exclude(riguarda(Giocatore), Informazioni, Tmp),
     NuoveInformazioni = [carta_posseduta(Giocatore, Carta) | Tmp].
 
-aggiorna_conoscenza(
+reg_evento(
         conoscenza(Giocatori, Informazioni, Rimossa, Scarti),
         giocatore_eliminato(Giocatore, CartaScartata),
-        conoscenza(NuovoGiocatori, NuoveInformazioni, Rimossa, NuoviScarti)) :-
-    delete(Informazioni, Giocatore-_, NuoveInformazioni),
-    delete(Giocatori, Giocatore, NuovoGiocatori),
-    NuoviScarti = [CartaScartata | Scarti].
+        CF) :-
+    delete(Giocatori, Giocatore, NuoviGiocatori),
+    C2 = conoscenza(NuoviGiocatori, Informazioni, Rimossa, Scarti),
+    reg_evento(C2, carta_scartata(Giocatore, CartaScartata), CF).
 
 % Effetti delle carte
+
 
 
 % Stato di gioco possibile data una conoscenza. Non deterministico.
