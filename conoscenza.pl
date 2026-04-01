@@ -45,6 +45,7 @@ inizializza_multiset(
 % carta_non_posseduta(Giocatore, Carta)
 % carta_superiore(Giocatore, Valore)
 % carta_uguale(Giocatore, Giocatore)
+% carta_in_posizione(Carta, Posizione) - posizione dal fondo del mazzo
 
 riguarda(G, carta_posseduta(G, _)).
 riguarda(G, carta_non_posseduta(G, _)).
@@ -170,7 +171,6 @@ reg_evento(
     reg_evento(C2, carta_scartata(Giocatore, CartaScartata), CF).
 
 % Effetti delle carte
-
 reg_evento(
         C1,
         carta_giocata(Giocatore, spia),
@@ -257,10 +257,31 @@ reg_evento(
 
 reg_evento(
         C1,
-        carta_giocata(Giocatore, cancelliere),
+        carta_giocata(Giocatore, cancelliere, CartaTenuta, CartaPenultima, CartaUltima),
         CF) :-
-    reg_evento(C1, carta_scartata(Giocatore, cancelliere), CF).
-    % TODO con conoscenza del fondo
+    reg_evento(C1, carta_giocata(Giocatore, cancelliere), C2),
+    reg_evento(C2, carta_vista(Giocatore, CartaTenuta), conoscenza(Giocatori, I3, Rimossa, Scarti)),
+    CF = conoscenza(Giocatori, [carta_in_posizione(CartaPenultima, 2), carta_in_posizione(CartaUltima, 1) | I3], Rimossa, Scarti).
+
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, cancelliere),
+        conoscenza(Giocatori, NuoveInformazioni, Rimossa, Scarti)) :-
+    reg_evento(C1, carta_scartata(Giocatore, cancelliere), conoscenza(Giocatori, I2, Rimossa, Scarti)),
+    findall(InfoF,
+      (
+        member(Info, I2),
+        (
+          Info = carta_in_posizione(Carta, Pos) ->
+            NuovoPos is Pos + 2,
+            InfoF = carta_in_posizione(Carta, NuovoPos)
+          ;
+            InfoF = Info
+        )
+      ),
+      NuoveInformazioni
+    ).
+
 
 reg_evento(
         C1,
