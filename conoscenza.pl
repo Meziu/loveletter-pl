@@ -52,6 +52,31 @@ riguarda(G, carta_superiore(G, _)).
 riguarda(G, carta_uguale(G, _)).
 riguarda(G, carta_uguale(_, G)).
 
+scambia_giocatore(G1, G2, I, I2) :-
+  \+ riguarda(G1, I),
+  riguarda(G2, I),
+  scambia_giocatore(G2, G1, I, I2).
+scambia_giocatore(G1, G2, carta_posseduta(G1, C), carta_posseduta(G2, C)).
+scambia_giocatore(G1, G2, carta_non_posseduta(G1, C), carta_non_posseduta(G2, C)).
+scambia_giocatore(G1, G2, carta_superiore(G1, V), carta_superiore(G2, V)).
+scambia_giocatore(G1, G2, carta_uguale(G1, G2), carta_uguale(G1, G2)) :- !. % caso in cui si scambia tra due giocatori legati
+scambia_giocatore(G1, G2, carta_uguale(G1, Gd), carta_uguale(G2, Gd)).
+scambia_giocatore(G1, G2, carta_uguale(Gd, G1), carta_uguale(Gd, G2)).
+% se le info non appartengono ai giocatori
+scambia_giocatore(G1, G2, I, I) :-
+    \+ riguarda(G1, I),
+    \+ riguarda(G2, I).
+
+scambio_informazioni(G1, G2, InformazioniDaCambiare, NuoveInformazioni) :-
+    G1 \== G2,
+    findall(I2,
+        (
+          member(I1, InformazioniDaCambiare),
+          scambia_giocatore(G1, G2, I1, I2)
+        ),
+        NuoveInformazioni
+    ).
+
 vincoli(G, C, Informazioni, CarteInMano, PosizioneNelMazzo) :-
   % Anzichè usare ->, per favorire backtracking si usa una logica inversa.
   % "Non voglio che ci sia una regola E non sia rispettata"
@@ -97,7 +122,7 @@ mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale) :-
 % -----------------------------------------------------------------------------
 % Aggiornamento della conoscenza dopo un evento osservato
 %
-% aggiorna_conoscenza(+Conoscenza, +Evento, -NuovaConoscenza)
+% reg_evento(+Conoscenza, +Evento, -NuovaConoscenza)
 %
 % Tipi di evento:
 %   - carta_scartata(Giocatore, Carta)
@@ -125,7 +150,6 @@ reg_evento(
         conoscenza(Giocatori, Informazioni, Rimossa, Scarti),
         carta_scartata(Giocatore, Carta),
         conoscenza(Giocatori, NuoveInformazioni, Rimossa, NuoviScarti)) :-
-    writeln(Informazioni),
     exclude(riguarda(Giocatore), Informazioni, NuoveInformazioni),
     NuoviScarti = [Carta | Scarti].
 
@@ -147,7 +171,117 @@ reg_evento(
 
 % Effetti delle carte
 
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, spia),
+        CF) :-
+    reg_evento(C1, carta_scartata(Giocatore, spia), CF).
 
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, guardia, Bersaglio, CartaScelta, IsEliminato),
+        CF) :-
+    bool(IsEliminato),
+    reg_evento(C1, carta_scartata(Giocatore, guardia), C2),
+    C2 = conoscenza(Giocatori, I2, Rimossa, NuoviScarti),
+    (
+      IsEliminato == true ->
+        reg_evento(C2, giocatore_eliminato(Bersaglio, CartaScelta), CF)
+      ;
+      IsEliminato == false ->
+        CF = conoscenza(Giocatori, [carta_non_posseduta(CartaScelta) | I2], Rimossa, NuoviScarti)
+      ;
+        fail
+    ).
+
+% Senza conoscerne la carta
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, prete, _),
+        CF) :-
+    reg_evento(C1, carta_scartata(Giocatore, prete), CF).
+% Conoscendone la carta
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, prete, Bersaglio, CartaVista),
+        CF) :-
+    reg_evento(C1, carta_giocata(Giocatore, prete, Bersaglio), C2),
+    reg_evento(C2, carta_vista(Bersaglio, CartaVista), CF).
+
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, barone, Bersaglio),
+        CF) :-
+    reg_evento(C1, carta_scartata(Giocatore, barone), conoscenza(Giocatori, I2, Rimossa, Scarti)),
+    CF = conoscenza(Giocatori, [carta_uguale(Giocatore, Bersaglio) | I2], Rimossa, Scarti).
+
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, barone, Bersaglio, Eliminato, CartaEliminata),
+        CF) :-
+    atom(Eliminato),
+    valore(CartaEliminata, V),
+    Giocatore \== Bersaglio,
+    reg_evento(C1, carta_scartata(Giocatore, barone), C2),
+    reg_evento(C2, giocatore_eliminato(Eliminato, CartaEliminata), conoscenza(Giocatori, I3, Rimossa, Scarti)),
+    (
+      Giocatore \= Eliminato ->
+        Vincitore = Giocatore
+      ;
+      Bersaglio \= Eliminato ->
+        Vincitore = Bersaglio
+      ;
+        fail
+    ),
+    CF = conoscenza(Giocatori, [carta_superiore(Vincitore, V) | I3], Rimossa, Scarti).
+
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, domestica),
+        CF) :-
+    reg_evento(C1, carta_scartata(Giocatore, domestica), CF).
+
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, principe, Bersaglio, CartaScartata),
+        CF) :-
+    reg_evento(C1, carta_scartata(Giocatore, principe), conoscenza(Giocatori, I2, Rimossa, Scarti)),
+    C3 = conoscenza(Giocatori, [carta_non_posseduta(Giocatore, contessa) | I2], Rimossa, Scarti),
+    % Principessa è l'unica carta con un effetto quando viene scartata.
+    (
+      CartaScartata == principessa ->
+        reg_evento(C3, giocatore_eliminato(Bersaglio, CartaScartata), CF)
+      ;
+        reg_evento(C3, carta_scartata(Bersaglio, CartaScartata), CF)
+    ).
+
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, cancelliere),
+        CF) :-
+    reg_evento(C1, carta_scartata(Giocatore, cancelliere), CF).
+    % TODO con conoscenza del fondo
+
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, re, Bersaglio),
+        conoscenza(Giocatori, NuoveInformazioni, Rimossa, Scarti)) :-
+    reg_evento(C1, carta_scartata(Giocatore, re), conoscenza(Giocatori, I2, Rimossa, Scarti)),
+    I3 = [carta_non_posseduta(Giocatore, contessa) | I2],
+    % Scambio di giocatore nelle info
+    scambio_informazioni(Giocatore, Bersaglio, I3, NuoveInformazioni).
+
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, contessa),
+        CF) :-
+    reg_evento(C1, carta_scartata(Giocatore, contessa), CF).
+
+reg_evento(
+        C1,
+        carta_giocata(Giocatore, principessa),
+        CF) :-
+    reg_evento(C1, giocatore_eliminato(Giocatore, principessa), CF).
 
 % Stato di gioco possibile data una conoscenza. Non deterministico.
 %

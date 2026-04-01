@@ -2,6 +2,9 @@
 % MAZZO — Definizione carte e operazioni sul multiset
 % =============================================================================
 
+bool(true).
+bool(false).
+
 % Definizione delle carte
 carta(spia).
 carta(guardia).

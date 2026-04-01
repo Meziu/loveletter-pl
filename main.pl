@@ -39,7 +39,7 @@ main :-
     % Evento 1: pippo gioca la spia
     % -------------------------------------------------------------------------
 
-    aggiorna_conoscenza(C0, carta_scartata(pippo, spia), C1),
+    reg_evento(C0, carta_scartata(pippo, spia), C1),
 
     nl, write('=== DOPO: pippo gioca la spia ==='), nl,
     stampa_conoscenza(C1),
@@ -48,7 +48,7 @@ main :-
     % Evento 2: pluto gioca il barone (la carta nota viene scartata)
     % -------------------------------------------------------------------------
 
-    aggiorna_conoscenza(C1, carta_scartata(pluto, barone), C2),
+    reg_evento(C1, carta_scartata(pluto, barone), C2),
 
     nl, write('=== DOPO: pluto gioca il barone ==='), nl,
     stampa_conoscenza(C2).
@@ -68,7 +68,7 @@ main :-
     % Evento 4: si scopre che pluto aveva la principessa (è uscito).
     % -------------------------------------------------------------------------
 
-    %aggiorna_conoscenza(C2, giocatore_eliminato(pluto, principessa), C3),
+    %reg_evento(C2, giocatore_eliminato(pluto, principessa), C3),
 
     %nl, write('=== DOPO: pluto eliminato con principessa ==='), nl,
     %stampa_conoscenza(C3).
