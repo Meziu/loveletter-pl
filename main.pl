@@ -59,19 +59,19 @@ main :-
 
     nl, write('=== ANALISI: probabilità mano di pluto ==='), nl,
     pesca_possibile(C2, pluto, Stati),
-    stampa_probabilita(Stati),
+    stampa_probabilita(Stati).
 
-    carta_piu_probabile(C2, pluto, CartaConsigliata),
-    nl, format("Carta consigliata da indovinare con la guardia: ~w~n", [CartaConsigliata]),
+    %carta_piu_probabile(C2, pluto, CartaConsigliata),
+    %nl, format("Carta consigliata da indovinare con la guardia: ~w~n", [CartaConsigliata]),
 
     % -------------------------------------------------------------------------
     % Evento 4: si scopre che pluto aveva la principessa (è uscito).
     % -------------------------------------------------------------------------
 
-    aggiorna_conoscenza(C2, giocatore_eliminato(pluto, principessa), C3),
+    %aggiorna_conoscenza(C2, giocatore_eliminato(pluto, principessa), C3),
 
-    nl, write('=== DOPO: pluto eliminato con principessa ==='), nl,
-    stampa_conoscenza(C3).
+    %nl, write('=== DOPO: pluto eliminato con principessa ==='), nl,
+    %stampa_conoscenza(C3).
 
 % -----------------------------------------------------------------------------
 % Stampa la conoscenza corrente

@@ -82,31 +82,41 @@ aggiorna_conoscenza(
 % carta_superiore_a(Giocatore, Valore)
 % carta_uguale(Giocatore, Giocatore)
 
-vincoli(G, C, CarteOsservate) :-
+vincoli(G, C, CarteOsservate, CarteInMano) :-
+  % Anzichè usare ->, per favorire backtracking si usa una logica inversa.
+  % "Non voglio che ci sia una regola E non sia rispettata"
   \+ (
       member(carta_non_posseduta(G, X), CarteOsservate),
       C = X
   ),
   \+ (
-      member(carta_superiore_a(G, Min), CarteOsservate),
+      member(carta_superiore(G, Min), CarteOsservate),
       valore(C, V),
       V =< Min
+  ),
+  \+ (
+      (
+        member(carta_uguale(G, Altro), CarteOsservate);
+        member(carta_uguale(Altro, G), CarteOsservate)
+      ),
+      member(Altro-CAltro, CarteInMano),
+      dif(C, CAltro)
   ).
 
 % Assegna ad ogni giocatore una carta, come nello stato solito di una partita.
-mano_giocatori([], _, M, [], M).
+mano_giocatori([], _, M, [], _, M).
 % con carta nota
-mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], MFinale) :-
+mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], Acc, MFinale) :-
   member(carta_posseduta(G, C), CarteOsservate),
   rimuovi_primo(carta_posseduta(G, C), CarteOsservate, CarteOsservateRestanti),
   pesca_da_multiset(C, M1, M2),
-  mano_giocatori(Gs, CarteOsservateRestanti, M2, R, MFinale).
+  mano_giocatori(Gs, CarteOsservateRestanti, M2, R, [G-C|Acc], MFinale).
 % senza una carta nota
-mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], MFinale) :-
+mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], Acc, MFinale) :-
   \+ member(carta_posseduta(G, _), CarteOsservate),
   pesca_da_multiset(C, M1, M2),
-  vincoli(G, C, CarteOsservate),
-  mano_giocatori(Gs, CarteOsservate, M2, R, MFinale).
+  vincoli(G, C, CarteOsservate, Acc),
+  mano_giocatori(Gs, CarteOsservate, M2, R, [G-C|Acc], MFinale).
 
 % Stato di gioco possibile data una conoscenza. Non deterministico.
 %
@@ -116,7 +126,7 @@ stato_possibile(C, stato(ManoGiocatori, M2, CartaRimossa)) :-
   C = conoscenza(Giocatori, CarteOsservate, _, _),
   inizializza_multiset(C, M0),
   pesca_da_multiset(CartaRimossa, M0, M1),
-  mano_giocatori(Giocatori, CarteOsservate, M1, ManoGiocatori, M2).
+  mano_giocatori(Giocatori, CarteOsservate, M1, ManoGiocatori, [], M2).
 
 % Costruisce la lista di stati (ManoGiocatore-MultisetRimanente) dopo un'azione di pesca.
 pesca_possibile(Conoscenza, Giocatore, Stati) :-
