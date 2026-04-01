@@ -74,3 +74,10 @@ pesca_da_multiset(Carta, Multiset, NuovoMultiset) :-
     N > 0,
     between(1, N, _),
     rimuovi_da_multiset(Carta, Multiset, NuovoMultiset).
+
+carte_in_multiset(Multiset, N) :-
+  aggregate_all(
+    sum(Copie),
+    member(_-Copie, Multiset),
+    N
+  ).

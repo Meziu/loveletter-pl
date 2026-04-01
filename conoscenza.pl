@@ -82,7 +82,7 @@ aggiorna_conoscenza(
 % carta_superiore_a(Giocatore, Valore)
 % carta_uguale(Giocatore, Giocatore)
 
-vincoli(G, C, CarteOsservate, CarteInMano) :-
+vincoli(G, C, CarteOsservate, CarteInMano, PosizioneNelMazzo) :-
   % Anzichè usare ->, per favorire backtracking si usa una logica inversa.
   % "Non voglio che ci sia una regola E non sia rispettata"
   \+ (
@@ -101,6 +101,11 @@ vincoli(G, C, CarteOsservate, CarteInMano) :-
       ),
       member(Altro-CAltro, CarteInMano),
       dif(C, CAltro)
+  ),
+  \+ (
+      member(carta_in_posizione(CartaPos, Pos), CarteOsservate),
+      Pos = PosizioneNelMazzo,
+      dif(C, CartaPos)
   ).
 
 % Assegna ad ogni giocatore una carta, come nello stato solito di una partita.
@@ -114,8 +119,9 @@ mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], Acc, MFinale) :-
 % senza una carta nota
 mano_giocatori([G|Gs], CarteOsservate, M1, [G-C|R], Acc, MFinale) :-
   \+ member(carta_posseduta(G, _), CarteOsservate),
+  carte_in_multiset(M1, Pos), % numero prima dell'estrazione
   pesca_da_multiset(C, M1, M2),
-  vincoli(G, C, CarteOsservate, Acc),
+  vincoli(G, C, CarteOsservate, Acc, Pos),
   mano_giocatori(Gs, CarteOsservate, M2, R, [G-C|Acc], MFinale).
 
 % Stato di gioco possibile data una conoscenza. Non deterministico.
