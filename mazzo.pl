@@ -48,8 +48,8 @@ conta(X, [_|T], N) :- conta(X, T, N).
 % =============================================================================
 
 % Aggiorna il conteggio di una carta nel multiset
-aggiorna_copie(Carta, N, [Carta-_ | R], [Carta-N | R]) :- !.
-aggiorna_copie(Carta, N, [H | R],       [H | NR]) :-
+aggiorna_copie(Carta, N, [Carta-_  |R], [Carta-N  |R]) :- !.
+aggiorna_copie(Carta, N, [H  |R], [H  |NR]) :-
     aggiorna_copie(Carta, N, R, NR).
 
 % Rimuove la prima apparizione di un elemento in una lista.
@@ -79,8 +79,8 @@ pesca_da_multiset(Carta, Multiset, NuovoMultiset) :-
     rimuovi_da_multiset(Carta, Multiset, NuovoMultiset).
 
 carte_in_multiset(Multiset, N) :-
-  aggregate_all(
-    sum(Copie),
-    member(_-Copie, Multiset),
-    N
-  ).
+    aggregate_all(
+        sum(Copie),
+        member(_-Copie, Multiset),
+        N
+    ).
