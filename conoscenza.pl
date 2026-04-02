@@ -282,7 +282,6 @@ reg_evento(
       NuoveInformazioni
     ).
 
-
 reg_evento(
         C1,
         carta_giocata(Giocatore, re, Bersaglio),
@@ -303,6 +302,12 @@ reg_evento(
         carta_giocata(Giocatore, principessa),
         CF) :-
     reg_evento(C1, giocatore_eliminato(Giocatore, principessa), CF).
+
+% Registrazione ordinata di una lista di eventi
+reg_eventi(C, [], C).
+reg_eventi(C1, [E | R], CF) :-
+  reg_evento(C1, E, C2),
+  reg_eventi(C2, R, CF).
 
 % Stato di gioco possibile data una conoscenza. Non deterministico.
 %
