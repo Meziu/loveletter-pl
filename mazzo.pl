@@ -1,7 +1,3 @@
-% =============================================================================
-% MAZZO — Definizione carte e operazioni sul multiset
-% =============================================================================
-
 bool(true).
 bool(false).
 
@@ -43,9 +39,7 @@ conta(_, [], 0).
 conta(X, [X|T], N) :- !, conta(X, T, N1), N is N1 + 1.
 conta(X, [_|T], N) :- conta(X, T, N).
 
-% =============================================================================
-% MULTISET: lista di coppie carta-conteggio, es: [guardia-3, prete-2, ...]
-% =============================================================================
+% Multiset lista di coppie carta-conteggio, es: [guardia-3, prete-2, ...]
 
 % Aggiorna il conteggio di una carta nel multiset
 aggiorna_copie(Carta, N, [Carta-_  |R], [Carta-N  |R]) :- !.

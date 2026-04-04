@@ -1,5 +1,4 @@
-% =============================================================================
-% CONOSCENZA — Vista parziale dello stato di gioco
+% Vista parziale dello stato di gioco
 %
 % conoscenza(
 %   Giocatori,        % lista dei nomi dei giocatori
@@ -7,8 +6,6 @@
 %   CartaRimossa,     % 'sconosciuta' oppure una carta specifica
 %   Scarti            % lista di carte visibili a tutti
 % )
-%
-% =============================================================================
 
 conoscenza_valida(conoscenza(_, Informazioni, CartaRimossa, Scarti)) :-
     is_list(Informazioni),
@@ -23,12 +20,7 @@ stampa_conoscenza(conoscenza(Giocatori, Informazioni, CartaRimossa, Scarti)) :-
     format("  Carta rimossa: ~w~n", [CartaRimossa]),
     format("  Scarti: ~w~n", [Scarti]).
 
-% -----------------------------------------------------------------------------
 % Multiset delle carte in gioco
-%
-% Sottraendo dal mazzo completo: pila degli scarti + carta rimossa (se nota).
-% -----------------------------------------------------------------------------
-
 inizializza_multiset(
                      conoscenza(_, _, CartaRimossa, Scarti), Multiset) :-
     (CartaRimossa = sconosciuta
@@ -139,18 +131,7 @@ mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale) :-
     vincoli(G, C, Informazioni, Acc, M1), % multiset considerato *prima* di pescare
     mano_giocatori(Gs, Informazioni, M2, R, [G-C|Acc], MFinale).
 
-% -----------------------------------------------------------------------------
 % Aggiornamento della conoscenza dopo un evento osservato
-%
-% reg_evento(+Conoscenza, +Evento, -NuovaConoscenza)
-%
-% Tipi di evento:
-%   - carta_scartata(Giocatore, Carta)
-%   - carta_vista(Giocatore, Carta)
-%   - giocatore_eliminato(Giocatore, Carta)
-%     un giocatore esce dal gioco e scarta la sua mano
-% -----------------------------------------------------------------------------
-
 % Se è nota una relazione di "uguaglianza" con un altro giocatore
 reg_evento(
            conoscenza(Giocatori, Informazioni, Rimossa, Scarti),
