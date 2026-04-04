@@ -17,6 +17,12 @@ conoscenza_valida(conoscenza(_, Informazioni, CartaRimossa, Scarti)) :-
 
 nuova_conoscenza(Giocatori, conoscenza(Giocatori, [], sconosciuta, [])).
 
+stampa_conoscenza(conoscenza(Giocatori, Informazioni, CartaRimossa, Scarti)) :-
+    format("  Giocatori in partita: ~w~n", [Giocatori]),
+    format("  Informazioni note: ~w~n", [Informazioni]),
+    format("  Carta rimossa: ~w~n", [CartaRimossa]),
+    format("  Scarti: ~w~n", [Scarti]).
+
 % -----------------------------------------------------------------------------
 % Multiset delle carte in gioco
 %
@@ -60,7 +66,7 @@ scambia_giocatore(G1, G2, I, I2) :-
 scambia_giocatore(G1, G2, carta_posseduta(G1, C), carta_posseduta(G2, C)).
 scambia_giocatore(G1, G2, carta_non_posseduta(G1, C), carta_non_posseduta(G2, C)).
 scambia_giocatore(G1, G2, carta_superiore(G1, V), carta_superiore(G2, V)).
-scambia_giocatore(G1, G2, carta_uguale(G1, G2), carta_uguale(G1, G2)) :- !.  % caso in cui si scambia tra due giocatori legati
+scambia_giocatore(G1, G2, carta_uguale(G1, G2), carta_uguale(G1, G2)) :- !.         % caso in cui si scambia tra due giocatori legati
 scambia_giocatore(G1, G2, carta_uguale(G1, Gd), carta_uguale(G2, Gd)).
 scambia_giocatore(G1, G2, carta_uguale(Gd, G1), carta_uguale(Gd, G2)).
 % se le info non appartengono ai giocatori
@@ -78,7 +84,8 @@ scambio_informazioni(G1, G2, InformazioniDaCambiare, NuoveInformazioni) :-
             NuoveInformazioni
     ).
 
-vincoli(G, C, Informazioni, CarteInMano, PosizioneNelMazzo) :-
+vincoli(G, C, Informazioni, CarteInMano, Multiset) :-
+    carte_in_multiset(Multiset, PosizioneNelMazzo),
     % Anzichè usare ->, per favorire backtracking si usa una logica inversa.
     % "Non voglio che ci sia una regola E non sia rispettata"
     \+ (
@@ -98,10 +105,23 @@ vincoli(G, C, Informazioni, CarteInMano, PosizioneNelMazzo) :-
            member(Altro-CAltro, CarteInMano),
            dif(C, CAltro)
        ),
+    % Controllo di pesca alla posizione esatta
     \+ (
            member(carta_in_posizione(CartaPos, Pos), Informazioni),
            Pos = PosizioneNelMazzo,
            dif(C, CartaPos)
+       ),
+    % Controllo che non si usino copie extra ad una posizione quando si sa che devono essere in un altra.
+    \+ (
+           aggregate_all(count,
+                         (
+                             member(carta_in_posizione(C, PosVincolo), Informazioni),
+                             PosVincolo < PosizioneNelMazzo
+                         ),
+                         N),
+           N > 0,
+           member(C-Copie, Multiset),
+           Copie =< N
        ).
 
 % Assegna ad ogni giocatore una carta, come nello stato solito di una partita.
@@ -115,9 +135,8 @@ mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale) :-
 % senza una carta nota
 mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale) :-
     \+ member(carta_posseduta(G, _), Informazioni),
-    carte_in_multiset(M1, Pos), % numero prima dell'estrazione
     pesca_da_multiset(C, M1, M2),
-    vincoli(G, C, Informazioni, Acc, Pos),
+    vincoli(G, C, Informazioni, Acc, M1), % multiset considerato *prima* di pescare
     mano_giocatori(Gs, Informazioni, M2, R, [G-C|Acc], MFinale).
 
 % -----------------------------------------------------------------------------
@@ -152,6 +171,8 @@ reg_evento(
            carta_scartata(Giocatore, Carta),
            conoscenza(Giocatori, NuoveInformazioni, Rimossa, NuoviScarti)) :-
     exclude(riguarda(Giocatore), Informazioni, NuoveInformazioni),
+    % TODO: Rimuovere solo le informazioni CHE NON HANNO A CHE FARE con la carta scartata
+    % (così che giocando una carta diversa si sappia che è ancora in mano quella su cui si hanno informazioni)
     NuoviScarti = [Carta  |Scarti].
 
 reg_evento(
@@ -182,6 +203,7 @@ reg_evento(
            carta_giocata(Giocatore, guardia, Bersaglio, CartaScelta, IsEliminato),
            CF) :-
     bool(IsEliminato),
+    CartaScelta \== guardia, % Per regolamento, non si può dire "guardia"
     reg_evento(C1, carta_scartata(Giocatore, guardia), C2),
     C2 = conoscenza(Giocatori, I2, Rimossa, NuoviScarti),
     (
@@ -318,35 +340,3 @@ stato_possibile(C, stato(ManoGiocatori, M2, CartaRimossa)) :-
     inizializza_multiset(C, M0),
     pesca_da_multiset(CartaRimossa, M0, M1),
     mano_giocatori(Giocatori, Informazioni, M1, ManoGiocatori, [], M2).
-
-% Costruisce la lista di stati (ManoGiocatore-MultisetRimanente) dopo un'azione di pesca.
-%pesca_possibile(Conoscenza, Giocatore, Stati) :-
-%  Conoscenza = conoscenza(_, Informazioni, _, _),
-%  inizializza_multiset(Conoscenza, M),
-%  pesca_da_multiset(CartaRimossa, M, M0),
-%  findall(stato(Mano, M2, CartaRimossa),
-%      (
-%        member(Giocatore-CartaInMano, Informazioni) ->
-%          pesca_da_multiset(Carta, M0, M1),
-%          Mano = [CartaInMano, Carta]
-%        ;
-%          pesca_da_multiset(CartaInMano, M0, M1), % La prima è una "pesca fittizia" per indicare una carta a caso tra le disponibili
-%          pesca_da_multiset(Carta, M1, M2),
-%          Mano = [CartaInMano, Carta]
-%      ),
-%      Stati
-%  ).
-
-% Restituisce la carta che il Giocatore ha più probabilità di avere in mano. Non deterministico.
-carta_piu_probabile(Conoscenza, Giocatore, CartaProbabile) :-
-    aggregate_all(bag(N-C), (
-                      carta(C),
-                      aggregate_all(count, (
-                                        stato_possibile(Conoscenza, stato(CarteInMano, _, _)),
-                                        member(Giocatore-C, CarteInMano)
-                                           ),
-                                    N
-                      )
-                            ), Coppie),
-    max_member(Max-_, Coppie),
-    member(Max-CartaProbabile, Coppie).
