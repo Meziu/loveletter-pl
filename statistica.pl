@@ -19,8 +19,9 @@ occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, NStati) :-
 % Restituisce la carta che il Giocatore ha più probabilità di avere in mano. Non deterministico.
 mano_piu_probabile(Conoscenza, Giocatore, CartaProbabile) :-
     occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, _),
-    max_member(_-Max, Coppie),
-    member(CartaProbabile-Max, Coppie).
+    pairs_keys_values(Coppie, Carte, Counts),
+    pairs_keys_values(CoppieSwapped, Counts, Carte),
+    max_member(_-CartaProbabile, CoppieSwapped).
 
 % Stampa la probabilità per ogni carta
 stampa_probabilita_mano(Conoscenza, Giocatore) :-
