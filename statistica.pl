@@ -22,6 +22,25 @@ mano_piu_probabile(Conoscenza, Giocatore, CartaProbabile) :-
     last(Traspos, Max-_),
     member(Max-CartaProbabile, Traspos).
 
+% All hail Shannon
+somma_entropia(_, _-0, Acc, Acc) :- !.
+somma_entropia(Totale, _-Favorevoli, Acc, H) :-
+    P is Favorevoli / Totale,
+    H is Acc - P * log(P) / log(2).
+
+entropia_mano(Conoscenza, Giocatore, Entropia) :-
+    occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, Totale),
+    foldl(somma_entropia(Totale),
+          Coppie,
+          0,
+          Entropia
+    ).
+
+delta_entropia_mano(C1, C2, Giocatore, Guadagno) :-
+    entropia_mano(C1, Giocatore, E1),
+    entropia_mano(C2, Giocatore, E2),
+    Guadagno is E1 - E2.
+
 % Stampa la probabilità per ogni carta
 stampa_probabilita_mano(Conoscenza, Giocatore) :-
     occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, Totale),

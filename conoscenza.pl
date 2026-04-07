@@ -58,7 +58,7 @@ scambia_giocatore(G1, G2, I, I2) :-
 scambia_giocatore(G1, G2, carta_posseduta(G1, C), carta_posseduta(G2, C)).
 scambia_giocatore(G1, G2, carta_non_posseduta(G1, C), carta_non_posseduta(G2, C)).
 scambia_giocatore(G1, G2, carta_superiore(G1, V), carta_superiore(G2, V)).
-scambia_giocatore(G1, G2, carta_uguale(G1, G2), carta_uguale(G1, G2)) :- !.            % caso in cui si scambia tra due giocatori legati
+scambia_giocatore(G1, G2, carta_uguale(G1, G2), carta_uguale(G1, G2)) :- !.             % caso in cui si scambia tra due giocatori legati
 scambia_giocatore(G1, G2, carta_uguale(G1, Gd), carta_uguale(G2, Gd)).
 scambia_giocatore(G1, G2, carta_uguale(Gd, G1), carta_uguale(Gd, G2)).
 % se le info non appartengono ai giocatori
