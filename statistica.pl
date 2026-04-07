@@ -1,8 +1,5 @@
 :- consult(conoscenza).
 
-add_comp(_-N, Acc, NuovoAcc) :-
-    NuovoAcc is Acc + N.
-
 % Restituisce per ogni carta, il numero di possibili stati in cui appare
 occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, NStati) :-
     aggregate_all(bag(C-N), (
@@ -14,14 +11,16 @@ occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, NStati) :-
                                     N
                       )
                             ), Coppie),
-    foldl(add_comp, Coppie, 0, NStati).
+    pairs_values(Coppie, Cs),
+    foldl(plus, Cs, 0, NStati).
 
 % Restituisce la carta che il Giocatore ha più probabilità di avere in mano. Non deterministico.
 mano_piu_probabile(Conoscenza, Giocatore, CartaProbabile) :-
     occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, _),
-    pairs_keys_values(Coppie, Carte, Counts),
-    pairs_keys_values(CoppieSwapped, Counts, Carte),
-    max_member(_-CartaProbabile, CoppieSwapped).
+    transpose_pairs(Coppie, Traspos),
+    % la trasposizione è automaticamente ordinata in ordine crescente, quindi usiamo l'ultimo valore
+    last(Traspos, Max-_),
+    member(Max-CartaProbabile, Traspos).
 
 % Stampa la probabilità per ogni carta
 stampa_probabilita_mano(Conoscenza, Giocatore) :-
