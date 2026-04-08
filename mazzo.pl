@@ -66,10 +66,9 @@ rimuovi_da_multiset(Carta, Multiset, NuovoMultiset) :-
 % Pesca una carta dal multiset (non-deterministico).
 % Backtracking enumera tutte le carte possibili,
 % una volta per ogni copia ancora disponibile nel multiset.
-pesca_da_multiset(Carta, Multiset, NuovoMultiset) :-
+pesca_da_multiset(Carta, Multiset, NuovoMultiset, N) :-
     member(Carta-N, Multiset),
     N > 0,
-    between(1, N, _),
     rimuovi_da_multiset(Carta, Multiset, NuovoMultiset).
 
 carte_in_multiset(Multiset, N) :-
