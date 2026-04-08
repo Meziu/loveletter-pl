@@ -114,7 +114,7 @@ test_guardia_no_elim :-
             carta_giocata(a, guardia, b, prete, false),
             conoscenza(_, Info, _, _))
     ->  check(guardia_no_elim,
-            member(carta_non_posseduta(prete), Info))
+            member(carta_non_posseduta(b, prete), Info))
     ;   format('❌ Setup fallito: guardia_no_elim~n')
     ).
 
@@ -283,7 +283,7 @@ test_spia_guardia_chain :-
     check(spia_guardia_spia_in_scarti,
           member(spia, Scarti)),
     check(spia_guardia_non_posseduta,
-          member(carta_non_posseduta(prete), Info)).
+          member(carta_non_posseduta(c, prete), Info)).
 
 % -------------------------------------------------
 % Test: prete rivela carta, poi barone conferma uguaglianza
@@ -375,9 +375,9 @@ test_guardia_doppia_mancata :-
                CF),
     CF = conoscenza(_, Info, _, _),
     check(guardia_doppia_non_prete,
-          member(carta_non_posseduta(prete), Info)),
+          member(carta_non_posseduta(b, prete), Info)),
     check(guardia_doppia_non_barone,
-          member(carta_non_posseduta(barone), Info)).
+          member(carta_non_posseduta(b, barone), Info)).
 
 % -------------------------------------------------
 % Test: prete rivela carta, poi guardia usa quella info per eliminare
@@ -435,7 +435,7 @@ test_principe_poi_guardia_mancata :-
     check(ppgm_non_contessa_a,
           member(carta_non_posseduta(a, contessa), Info)),
     check(ppgm_non_prete_b,
-          member(carta_non_posseduta(prete), Info)).
+          member(carta_non_posseduta(b, prete), Info)).
 
 % -------------------------------------------------
 % Test: barone (vince a) poi re semplice (a scambia con c)

@@ -1,6 +1,7 @@
 :- consult(conoscenza).
 
-% Restituisce per ogni carta, il numero di possibili stati in cui appare
+% Restituisce per ogni carta, il numero di possibili stati in cui appare.
+% La lista è a coppie Numero-Carta ed è ordinata dal maggiore al minore.
 occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, NStati) :-
     aggregate_all(bag(C-N), (
                       carta(C),
@@ -10,17 +11,18 @@ occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, NStati) :-
                                            ),
                                     N
                       )
-                            ), Coppie),
-    pairs_values(Coppie, Cs),
-    foldl(plus, Cs, 0, NStati).
+                            ), CoppieGrezze),
+    transpose_pairs(CoppieGrezze, CoppieGrezze2),
+    reverse(CoppieGrezze2, Coppie),
+    pairs_values(CoppieGrezze, Vs),
+    foldl(plus, Vs, 0, NStati).
 
 % Restituisce la carta che il Giocatore ha più probabilità di avere in mano. Non deterministico.
 mano_piu_probabile(Conoscenza, Giocatore, CartaProbabile) :-
     occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, _),
-    transpose_pairs(Coppie, Traspos),
-    % la trasposizione è automaticamente ordinata in ordine crescente, quindi usiamo l'ultimo valore
-    last(Traspos, Max-_),
-    member(Max-CartaProbabile, Traspos).
+    % la lista è automaticamente ordinata in ordine decrescente, quindi usiamo il primo valore
+    Coppie = [Max-_ | _],
+    member(Max-CartaProbabile, Coppie).
 
 % All hail Shannon
 somma_entropia(_, _-0, Acc, Acc) :- !.
@@ -45,7 +47,7 @@ delta_entropia_mano(C1, C2, Giocatore, Guadagno) :-
 stampa_probabilita_mano(Conoscenza, Giocatore) :-
     occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, Totale),
     Totale =\= 0,
-    forall(member(Carta-Favorevoli, Coppie),
+    forall(member(Favorevoli-Carta, Coppie),
            (
                Prob is Favorevoli / Totale * 100,
                format("  ~w: ~d/~d (~2f%)~n", [Carta, Favorevoli, Totale, Prob])

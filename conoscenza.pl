@@ -228,7 +228,7 @@ reg_evento(
             reg_evento(C2, giocatore_eliminato(Bersaglio, CartaScelta), CF)
     ;
         IsEliminato == false ->
-            CF = conoscenza(Giocatori, [carta_non_posseduta(CartaScelta)  |I2], Rimossa, NuoviScarti)
+            CF = conoscenza(Giocatori, [carta_non_posseduta(Bersaglio, CartaScelta)  |I2], Rimossa, NuoviScarti)
     ;
         fail
     ).
