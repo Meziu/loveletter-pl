@@ -44,6 +44,7 @@ delta_entropia_mano(C1, C2, Giocatore, Guadagno) :-
 % Stampa la probabilità per ogni carta
 stampa_probabilita_mano(Conoscenza, Giocatore) :-
     occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, Totale),
+    Totale =\= 0,
     forall(member(Carta-Favorevoli, Coppie),
            (
                Prob is Favorevoli / Totale * 100,

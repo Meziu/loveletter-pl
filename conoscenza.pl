@@ -45,26 +45,43 @@ inizializza_multiset(
 % carta_uguale(Giocatore, Giocatore)
 % carta_in_posizione(Carta, Posizione) - posizione dal fondo del mazzo
 
-riguarda(G, carta_posseduta(G, _)).
-riguarda(G, carta_non_posseduta(G, _)).
-riguarda(G, carta_superiore(G, _)).
-riguarda(G, carta_uguale(G, _)).
-riguarda(G, carta_uguale(_, G)).
+riguarda_carta(C, carta_posseduta(_, C)).
+% "riguarda_carta" indica se un informazione è compatibile con una determinata carta.
+% Pertanto, il non-possedimento (controintuitivamente) riguarda "tutte le carte che non sono la non-posseduta".
+riguarda_carta(C1, carta_non_posseduta(_, C2)) :-
+  C1 \= C2.
+riguarda_carta(C, carta_superiore(_, V)) :-
+  valore(C, Vc),
+  Vc >= V.
+riguarda_carta(_, carta_uguale(_, _)).
+
+riguarda_giocatore(G, carta_posseduta(G, _)).
+riguarda_giocatore(G, carta_non_posseduta(G, _)).
+riguarda_giocatore(G, carta_superiore(G, _)).
+riguarda_giocatore(G, carta_uguale(G, _)).
+riguarda_giocatore(G, carta_uguale(_, G)).
+
+riguarda_giocatore_senza_uguale(G, I) :-
+  I \= carta_uguale(_, _),
+  riguarda_giocatore(G, I).
+
+riguarda(Giocatore, Carta, I) :-
+  riguarda_carta(Carta, I),
+  riguarda_giocatore(Giocatore, I).
 
 scambia_giocatore(G1, G2, I, I2) :-
-    \+ riguarda(G1, I),
-    riguarda(G2, I),
+    \+ riguarda_giocatore(G1, I),
+    riguarda_giocatore(G2, I),
     scambia_giocatore(G2, G1, I, I2).
 scambia_giocatore(G1, G2, carta_posseduta(G1, C), carta_posseduta(G2, C)).
 scambia_giocatore(G1, G2, carta_non_posseduta(G1, C), carta_non_posseduta(G2, C)).
 scambia_giocatore(G1, G2, carta_superiore(G1, V), carta_superiore(G2, V)).
-scambia_giocatore(G1, G2, carta_uguale(G1, G2), carta_uguale(G1, G2)) :- !.             % caso in cui si scambia tra due giocatori legati
-scambia_giocatore(G1, G2, carta_uguale(G1, Gd), carta_uguale(G2, Gd)).
-scambia_giocatore(G1, G2, carta_uguale(Gd, G1), carta_uguale(Gd, G2)).
-% se le info non appartengono ai giocatori
-scambia_giocatore(G1, G2, I, I) :-
-    \+ riguarda(G1, I),
-    \+ riguarda(G2, I).
+% caso in cui si scambia tra due giocatori legati
+scambia_giocatore(G1, G2, carta_uguale(G1, G2), carta_uguale(G1, G2)).
+scambia_giocatore(G1, G2, carta_uguale(G1, Gd), carta_uguale(G2, Gd)) :-
+  G2 \= Gd.
+scambia_giocatore(G1, G2, carta_uguale(Gd, G1), carta_uguale(Gd, G2)) :-
+  G2 \= Gd.
 
 scambio_informazioni(G1, G2, InformazioniDaCambiare, NuoveInformazioni) :-
     G1 \== G2,
@@ -131,46 +148,65 @@ mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale) :-
     vincoli(G, C, Informazioni, Acc, M1), % multiset considerato *prima* di pescare
     mano_giocatori(Gs, Informazioni, M2, R, [G-C|Acc], MFinale).
 
-% Aggiornamento della conoscenza dopo un evento osservato
-% Se è nota una relazione di "uguaglianza" con un altro giocatore
-reg_evento(
-           conoscenza(Giocatori, Informazioni, Rimossa, Scarti),
-           carta_scartata(Giocatore, Carta),
-           CF) :-
-    member(CU, Informazioni),
+risolvi_uguaglianze(_, _, [], []).
+risolvi_uguaglianze(Giocatore, Carta, [CU | R1], [carta_posseduta(Giocatore2, Carta) | R2]) :-
+  (
+      CU = carta_uguale(Giocatore, Giocatore2);
+      CU = carta_uguale(Giocatore2, Giocatore)
+  ),
+  risolvi_uguaglianze(Giocatore, Carta, R1, R2).
+risolvi_uguaglianze(Giocatore, Carta, [CU | R1], [CU | R2]) :-
+  \+ (
     (
-        CU = carta_uguale(Giocatore, Giocatore2);
-        CU = carta_uguale(Giocatore2, Giocatore)
-    ),
-    !,
-    delete(Informazioni, CU, Info2),
-    reg_evento(conoscenza(Giocatori, Info2, Rimossa, Scarti), carta_scartata(Giocatore, Carta), C2),
-    reg_evento(C2, carta_vista(Giocatore2, Carta), CF).
-% Se NON è nota una relazione di "uguaglianza" con un altro giocatore
+        CU = carta_uguale(Giocatore, _);
+        CU = carta_uguale(_, Giocatore)
+    )
+  ),
+  risolvi_uguaglianze(Giocatore, Carta, R1, R2).
+
+% Aggiornamento della conoscenza dopo un evento osservato
+
+% Carta scartata nel proprio turno
 reg_evento(
            conoscenza(Giocatori, Informazioni, Rimossa, Scarti),
            carta_scartata(Giocatore, Carta),
            conoscenza(Giocatori, NuoveInformazioni, Rimossa, NuoviScarti)) :-
-    exclude(riguarda(Giocatore), Informazioni, NuoveInformazioni),
-    % TODO: Rimuovere solo le informazioni CHE NON HANNO A CHE FARE con la carta scartata
-    % (così che giocando una carta diversa si sappia che è ancora in mano quella su cui si hanno informazioni)
+    exclude(riguarda(Giocatore, Carta), Informazioni, NuoveInformazioni),
+    NuoviScarti = [Carta  |Scarti].
+% Carta scartata nel turno avversario (forzatamente)
+reg_evento(
+           conoscenza(Giocatori, Info1, Rimossa, Scarti),
+           carta_tolta(Giocatore, Carta),
+           conoscenza(Giocatori, NuoveInformazioni, Rimossa, NuoviScarti)) :-
+    risolvi_uguaglianze(Giocatore, Carta, Info1, Info2),
+    exclude(riguarda_giocatore(Giocatore, Carta), Info2, NuoveInformazioni),
     NuoviScarti = [Carta  |Scarti].
 
 reg_evento(
-           conoscenza(Giocatori, Informazioni, Rimossa, Scarti),
+           conoscenza(Giocatori, Info1, Rimossa, Scarti),
            carta_vista(Giocatore, Carta),
            conoscenza(Giocatori, NuoveInformazioni, Rimossa, Scarti)) :-
-    % Non lavoriamo su "carta_uguale" poiché lo considera il generatore di possibili stati
-    exclude(riguarda(Giocatore), Informazioni, Tmp),
-    NuoveInformazioni = [carta_posseduta(Giocatore, Carta)  |Tmp].
+    risolvi_uguaglianze(Giocatore, Carta, Info1, Info2),
+    exclude(riguarda_giocatore(Giocatore), Info2, Info3),
+    NuoveInformazioni = [carta_posseduta(Giocatore, Carta)  |Info3].
 
+% Giocatore eliminato in un turno diverso dal proprio, quindi aveva 1 carta in mano.
 reg_evento(
-           conoscenza(Giocatori, Informazioni, Rimossa, Scarti),
+           conoscenza(Giocatori, Info1, Rimossa, Scarti),
            giocatore_eliminato(Giocatore, CartaScartata),
            CF) :-
     delete(Giocatori, Giocatore, NuoviGiocatori),
-    C2 = conoscenza(NuoviGiocatori, Informazioni, Rimossa, Scarti),
-    reg_evento(C2, carta_scartata(Giocatore, CartaScartata), CF).
+    C2 = conoscenza(NuoviGiocatori, Info1, Rimossa, Scarti),
+    reg_evento(C2, carta_tolta(Giocatore, CartaScartata), CF).
+% Giocatore eliminato nel proprio stesso turno, quindi aveva 2 carte in mano prima di giocare.
+reg_evento(
+           conoscenza(Giocatori, Info, Rimossa, Scarti),
+           giocatore_autoeliminato(Giocatore, CartaScartata),
+           CF) :-
+    % Non risolviamo le uguaglianze poichè con due carte in mano non siamo certi di quale sia quella uguale.
+    delete(Giocatori, Giocatore, NuoviGiocatori),
+    exclude(riguarda_giocatore(Giocatore), Info, Info2),
+    reg_evento(conoscenza(NuoviGiocatori, Info2, Rimossa, Scarti), carta_scartata(Giocatore, CartaScartata), CF).
 
 % Effetti delle carte
 reg_evento(
@@ -222,17 +258,17 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, barone, Bersaglio, Eliminato, CartaEliminata),
            CF) :-
-    atom(Eliminato),
     valore(CartaEliminata, V),
     Giocatore \== Bersaglio,
     reg_evento(C1, carta_scartata(Giocatore, barone), C2),
-    reg_evento(C2, giocatore_eliminato(Eliminato, CartaEliminata), conoscenza(Giocatori, I3, Rimossa, Scarti)),
     (
         Giocatore \= Eliminato ->
-            Vincitore = Giocatore
+            Vincitore = Giocatore,
+            reg_evento(C2, giocatore_eliminato(Bersaglio, CartaEliminata), conoscenza(Giocatori, I3, Rimossa, Scarti))
     ;
         Bersaglio \= Eliminato ->
-            Vincitore = Bersaglio
+            Vincitore = Bersaglio,
+            reg_evento(C2, giocatore_autoeliminato(Giocatore, CartaEliminata), conoscenza(Giocatori, I3, Rimossa, Scarti))
     ;
         fail
     ),
@@ -255,7 +291,7 @@ reg_evento(
         CartaScartata == principessa ->
             reg_evento(C3, giocatore_eliminato(Bersaglio, CartaScartata), CF)
     ;
-        reg_evento(C3, carta_scartata(Bersaglio, CartaScartata), CF)
+        reg_evento(C3, carta_tolta(Bersaglio, CartaScartata), CF)
     ).
 
 reg_evento(
@@ -264,7 +300,6 @@ reg_evento(
            CF) :-
     reg_evento(C1, carta_giocata(Giocatore, cancelliere), C2),
     reg_evento(C2, carta_vista(Giocatore, CartaTenuta), conoscenza(Giocatori, I3, Rimossa, Scarti)),
-    !,
     CF = conoscenza(Giocatori, [carta_in_posizione(CartaPenultima, 2), carta_in_posizione(CartaUltima, 1)  |I3], Rimossa, Scarti).
 
 reg_evento(
@@ -272,7 +307,6 @@ reg_evento(
            carta_giocata(Giocatore, cancelliere),
            conoscenza(Giocatori, NuoveInformazioni, Rimossa, Scarti)) :-
     reg_evento(C1, carta_scartata(Giocatore, cancelliere), conoscenza(Giocatori, I2, Rimossa, Scarti)),
-    !,
     findall(InfoF,
             (
                 member(Info, I2),
@@ -287,6 +321,7 @@ reg_evento(
             NuoveInformazioni
     ).
 
+% Senza conoscere le mani scambiate
 reg_evento(
            C1,
            carta_giocata(Giocatore, re, Bersaglio),
@@ -295,6 +330,15 @@ reg_evento(
     I3 = [carta_non_posseduta(Giocatore, contessa)  |I2],
     % Scambio di giocatore nelle info
     scambio_informazioni(Giocatore, Bersaglio, I3, NuoveInformazioni).
+% Conoscendo le mani scambiate
+reg_evento(
+           C1,
+           carta_giocata(Giocatore, re, Bersaglio, CartaPassata, CartaOttenuta),
+           CF) :-
+    reg_evento(C1, carta_scartata(Giocatore, re), conoscenza(Giocatori2, I2, Rimossa2, Scarti2)),
+    scambio_informazioni(Giocatore, Bersaglio, I2, I3),
+    reg_evento(conoscenza(Giocatori2, I3, Rimossa2, Scarti2), carta_vista(Giocatore, CartaOttenuta), C4),
+    reg_evento(C4, carta_vista(Bersaglio, CartaPassata), CF).
 
 reg_evento(
            C1,
@@ -304,9 +348,10 @@ reg_evento(
 
 reg_evento(
            C1,
-           carta_giocata(Giocatore, principessa),
+           carta_giocata(Giocatore, principessa, AltraCarta),
            CF) :-
-    reg_evento(C1, giocatore_eliminato(Giocatore, principessa), CF).
+    reg_evento(C1, carta_scartata(Giocatore, principessa), C2),
+    reg_evento(C2, giocatore_autoeliminato(Giocatore, AltraCarta), CF).
 
 % Registrazione ordinata di una lista di eventi
 reg_eventi(C, [], C).
