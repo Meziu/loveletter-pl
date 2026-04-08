@@ -21,7 +21,7 @@ occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, NStati) :-
 mano_piu_probabile(Conoscenza, Giocatore, CartaProbabile) :-
     occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, _),
     % la lista è automaticamente ordinata in ordine decrescente, quindi usiamo il primo valore
-    Coppie = [Max-_ | _],
+    Coppie = [Max-_  |_],
     member(Max-CartaProbabile, Coppie).
 
 % All hail Shannon

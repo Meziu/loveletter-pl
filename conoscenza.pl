@@ -7,6 +7,8 @@
 %   Scarti            % lista di carte visibili a tutti
 % )
 
+:- consult(mazzo).
+
 conoscenza_valida(conoscenza(_, Informazioni, CartaRimossa, Scarti)) :-
     is_list(Informazioni),
     (CartaRimossa = sconosciuta -> true ; carta(CartaRimossa)),
@@ -49,10 +51,10 @@ riguarda_carta(C, carta_posseduta(_, C)).
 % "riguarda_carta" indica se un informazione è compatibile con una determinata carta.
 % Pertanto, il non-possedimento (controintuitivamente) riguarda "tutte le carte che non sono la non-posseduta".
 riguarda_carta(C1, carta_non_posseduta(_, C2)) :-
-  C1 \= C2.
+    C1 \= C2.
 riguarda_carta(C, carta_superiore(_, V)) :-
-  valore(C, Vc),
-  Vc >= V.
+    valore(C, Vc),
+    Vc >= V.
 riguarda_carta(_, carta_uguale(_, _)).
 
 riguarda_giocatore(G, carta_posseduta(G, _)).
@@ -62,12 +64,12 @@ riguarda_giocatore(G, carta_uguale(G, _)).
 riguarda_giocatore(G, carta_uguale(_, G)).
 
 riguarda_giocatore_senza_uguale(G, I) :-
-  I \= carta_uguale(_, _),
-  riguarda_giocatore(G, I).
+    I \= carta_uguale(_, _),
+    riguarda_giocatore(G, I).
 
 riguarda(Giocatore, Carta, I) :-
-  riguarda_carta(Carta, I),
-  riguarda_giocatore(Giocatore, I).
+    riguarda_carta(Carta, I),
+    riguarda_giocatore(Giocatore, I).
 
 scambia_giocatore(G1, G2, I, I2) :-
     \+ riguarda_giocatore(G1, I),
@@ -79,9 +81,9 @@ scambia_giocatore(G1, G2, carta_superiore(G1, V), carta_superiore(G2, V)).
 % caso in cui si scambia tra due giocatori legati
 scambia_giocatore(G1, G2, carta_uguale(G1, G2), carta_uguale(G1, G2)).
 scambia_giocatore(G1, G2, carta_uguale(G1, Gd), carta_uguale(G2, Gd)) :-
-  G2 \= Gd.
+    G2 \= Gd.
 scambia_giocatore(G1, G2, carta_uguale(Gd, G1), carta_uguale(Gd, G2)) :-
-  G2 \= Gd.
+    G2 \= Gd.
 
 scambio_informazioni(G1, G2, InformazioniDaCambiare, NuoveInformazioni) :-
     G1 \== G2,
@@ -149,20 +151,20 @@ mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale) :-
     mano_giocatori(Gs, Informazioni, M2, R, [G-C|Acc], MFinale).
 
 risolvi_uguaglianze(_, _, [], []).
-risolvi_uguaglianze(Giocatore, Carta, [CU | R1], [carta_posseduta(Giocatore2, Carta) | R2]) :-
-  (
-      CU = carta_uguale(Giocatore, Giocatore2);
-      CU = carta_uguale(Giocatore2, Giocatore)
-  ),
-  risolvi_uguaglianze(Giocatore, Carta, R1, R2).
-risolvi_uguaglianze(Giocatore, Carta, [CU | R1], [CU | R2]) :-
-  \+ (
+risolvi_uguaglianze(Giocatore, Carta, [CU  |R1], [carta_posseduta(Giocatore2, Carta)  |R2]) :-
     (
-        CU = carta_uguale(Giocatore, _);
-        CU = carta_uguale(_, Giocatore)
-    )
-  ),
-  risolvi_uguaglianze(Giocatore, Carta, R1, R2).
+        CU = carta_uguale(Giocatore, Giocatore2);
+        CU = carta_uguale(Giocatore2, Giocatore)
+    ),
+    risolvi_uguaglianze(Giocatore, Carta, R1, R2).
+risolvi_uguaglianze(Giocatore, Carta, [CU  |R1], [CU  |R2]) :-
+    \+ (
+           (
+               CU = carta_uguale(Giocatore, _);
+               CU = carta_uguale(_, Giocatore)
+           )
+       ),
+    risolvi_uguaglianze(Giocatore, Carta, R1, R2).
 
 % Aggiornamento della conoscenza dopo un evento osservato
 
@@ -287,22 +289,22 @@ reg_evento(
     reg_evento(C1, carta_scartata(Giocatore, principe), conoscenza(Giocatori, I2, Rimossa, Scarti)),
     (
         Giocatore \== Bersaglio ->
-          C3 = conoscenza(Giocatori, [carta_non_posseduta(Giocatore, contessa)  |I2], Rimossa, Scarti),
-          % Principessa è l'unica carta con un effetto quando viene scartata.
-          (
-              CartaScartata == principessa ->
-                  reg_evento(C3, giocatore_eliminato(Bersaglio, CartaScartata), CF)
-          ;
-              reg_evento(C3, carta_tolta(Bersaglio, CartaScartata), CF)
-          )
+            C3 = conoscenza(Giocatori, [carta_non_posseduta(Giocatore, contessa)  |I2], Rimossa, Scarti),
+            % Principessa è l'unica carta con un effetto quando viene scartata.
+            (
+                CartaScartata == principessa ->
+                    reg_evento(C3, giocatore_eliminato(Bersaglio, CartaScartata), CF)
+            ;
+                reg_evento(C3, carta_tolta(Bersaglio, CartaScartata), CF)
+            )
+    ;
+        C2 = conoscenza(Giocatori, I2, Rimossa, Scarti),
+        (
+            CartaScartata == principessa ->
+                reg_evento(C2, giocatore_autoeliminato(Bersaglio, CartaScartata), CF)
         ;
-          C2 = conoscenza(Giocatori, I2, Rimossa, Scarti),
-          (
-              CartaScartata == principessa ->
-                  reg_evento(C2, giocatore_autoeliminato(Bersaglio, CartaScartata), CF)
-          ;
-              reg_evento(C2, carta_scartata(Bersaglio, CartaScartata), CF)
-          )
+            reg_evento(C2, carta_scartata(Bersaglio, CartaScartata), CF)
+        )
     ).
 
 reg_evento(
