@@ -179,7 +179,7 @@ reg_evento(
            carta_tolta(Giocatore, Carta),
            conoscenza(Giocatori, NuoveInformazioni, Rimossa, NuoviScarti)) :-
     risolvi_uguaglianze(Giocatore, Carta, Info1, Info2),
-    exclude(riguarda_giocatore(Giocatore, Carta), Info2, NuoveInformazioni),
+    exclude(riguarda_giocatore(Giocatore), Info2, NuoveInformazioni),
     NuoviScarti = [Carta  |Scarti].
 
 reg_evento(
@@ -285,13 +285,24 @@ reg_evento(
            carta_giocata(Giocatore, principe, Bersaglio, CartaScartata),
            CF) :-
     reg_evento(C1, carta_scartata(Giocatore, principe), conoscenza(Giocatori, I2, Rimossa, Scarti)),
-    C3 = conoscenza(Giocatori, [carta_non_posseduta(Giocatore, contessa)  |I2], Rimossa, Scarti),
-    % Principessa è l'unica carta con un effetto quando viene scartata.
     (
-        CartaScartata == principessa ->
-            reg_evento(C3, giocatore_eliminato(Bersaglio, CartaScartata), CF)
-    ;
-        reg_evento(C3, carta_tolta(Bersaglio, CartaScartata), CF)
+        Giocatore \== Bersaglio ->
+          C3 = conoscenza(Giocatori, [carta_non_posseduta(Giocatore, contessa)  |I2], Rimossa, Scarti),
+          % Principessa è l'unica carta con un effetto quando viene scartata.
+          (
+              CartaScartata == principessa ->
+                  reg_evento(C3, giocatore_eliminato(Bersaglio, CartaScartata), CF)
+          ;
+              reg_evento(C3, carta_tolta(Bersaglio, CartaScartata), CF)
+          )
+        ;
+          C2 = conoscenza(Giocatori, I2, Rimossa, Scarti),
+          (
+              CartaScartata == principessa ->
+                  reg_evento(C2, giocatore_autoeliminato(Bersaglio, CartaScartata), CF)
+          ;
+              reg_evento(C2, carta_scartata(Bersaglio, CartaScartata), CF)
+          )
     ).
 
 reg_evento(

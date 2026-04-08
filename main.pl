@@ -29,6 +29,18 @@ main :-
     run_test(test_re_scambio_cascade),
     run_test(test_principessa_autoeliminazione),
     run_test(test_cancellieri_catenati),
+    run_test(test_spia_guardia_chain),
+    run_test(test_prete_poi_barone),
+    run_test(test_barone_elim_bersaglio),
+    run_test(test_barone_autoelim_attaccante),
+    run_test(test_principe_su_se_stesso),
+    run_test(test_principe_forza_principessa),
+    run_test(test_spia_prete_contessa),
+    run_test(test_guardia_doppia_mancata),
+    run_test(test_principe_poi_guardia_mancata),
+    run_test(test_barone_poi_re_semplice),
+    run_test(test_domestica_principe_spia),
+    run_test(test_cancelliere_scala_posizioni),
     writeln('Fine test.').
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -256,3 +268,246 @@ test_cancellieri_catenati :-
         member(carta_in_posizione(prete, 2), Info)),
     check(cancellieri_posizioni2,
         member(carta_in_posizione(principessa, 1), Info)).
+
+% -------------------------------------------------
+% Test: spia + guardia mancata sullo stesso bersaglio
+% a gioca spia, b gioca guardia su c indovinando prete (sbaglia)
+% -------------------------------------------------
+test_spia_guardia_chain :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, spia),
+                carta_giocata(b, guardia, c, prete, false)],
+               CF),
+    CF = conoscenza(_, Info, _, Scarti),
+    check(spia_guardia_spia_in_scarti,
+          member(spia, Scarti)),
+    check(spia_guardia_non_posseduta,
+          member(carta_non_posseduta(prete), Info)).
+
+% -------------------------------------------------
+% Test: prete rivela carta, poi barone conferma uguaglianza
+% a gioca prete su b e vede guardia, poi a gioca barone su b
+% -------------------------------------------------
+test_prete_poi_barone :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, prete, b, guardia),
+                carta_giocata(a, barone, b)],
+               CF),
+    CF = conoscenza(_, Info, _, Scarti),
+    check(prete_barone_prete_in_scarti,
+          member(prete, Scarti)),
+    check(prete_barone_uguale,
+          member(carta_uguale(a, b), Info)).
+
+% -------------------------------------------------
+% Test: barone con eliminazione del bersaglio
+% a gioca barone su b, b viene eliminato con guardia (valore 1)
+% vincitore a → carta_superiore(a, 1)
+% -------------------------------------------------
+test_barone_elim_bersaglio :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, barone, b, b, guardia)],
+               CF),
+    CF = conoscenza(Giocatori, Info, _, Scarti),
+    check(barone_elim_b_rimosso,
+          \+ member(b, Giocatori)),
+    check(barone_elim_guardia_scartata,
+          member(guardia, Scarti)),
+    check(barone_elim_superiore_a,
+          member(carta_superiore(a, 1), Info)).
+
+% -------------------------------------------------
+% Test: barone con autoeliminazione dell'attaccante
+% a gioca barone su b, a viene eliminato con prete (valore 2)
+% vincitore b → carta_superiore(b, 2)
+% -------------------------------------------------
+test_barone_autoelim_attaccante :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, barone, b, a, prete)],
+               CF),
+    CF = conoscenza(Giocatori, Info, _, Scarti),
+    check(barone_autoelim_a_rimosso,
+          \+ member(a, Giocatori)),
+    check(barone_autoelim_prete_scartato,
+          member(prete, Scarti)),
+    check(barone_autoelim_superiore_b,
+          member(carta_superiore(b, 2), Info)).
+
+% -------------------------------------------------
+% Test: principe giocato su se stesso
+% a gioca principe su a stesso, scartando prete
+% -------------------------------------------------
+test_principe_su_se_stesso :-
+    C0 = conoscenza([a, b], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, principe, a, prete)],
+               CF),
+    CF = conoscenza(_, _, _, Scarti),
+    check(principe_self_prete_in_scarti,
+          member(prete, Scarti)).
+
+% -------------------------------------------------
+% Test: principe forza lo scarto della principessa → eliminazione
+% a gioca principe su b, b scarta principessa ed è eliminato
+% -------------------------------------------------
+test_principe_forza_principessa :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, principe, b, principessa)],
+               CF),
+    CF = conoscenza(Giocatori, _, _, _),
+    check(principe_principessa_b_eliminato,
+          \+ member(b, Giocatori)).
+
+% -------------------------------------------------
+% Test: due guardie mancate accumulano carta_non_posseduta distinte
+% a e c giocano guardia su b sbagliando carte diverse
+% -------------------------------------------------
+test_guardia_doppia_mancata :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, guardia, b, prete, false),
+                carta_giocata(c, guardia, b, barone, false)],
+               CF),
+    CF = conoscenza(_, Info, _, _),
+    check(guardia_doppia_non_prete,
+          member(carta_non_posseduta(prete), Info)),
+    check(guardia_doppia_non_barone,
+          member(carta_non_posseduta(barone), Info)).
+
+% -------------------------------------------------
+% Test: prete rivela carta, poi guardia usa quella info per eliminare
+% a gioca prete su b e vede prete (b ha prete), poi c gioca guardia su b
+% indovinando prete → b eliminato
+% Nota: CartaScelta = prete \== guardia ✓
+% -------------------------------------------------
+test_prete_poi_guardia_elim :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, prete, b, prete),
+                carta_giocata(c, guardia, b, prete, true)],
+               CF),
+    CF = conoscenza(Giocatori, _, _, Scarti),
+    check(prete_guardia_b_rimosso,
+          \+ member(b, Giocatori)),
+    check(prete_guardia_prete_in_scarti,
+          member(prete, Scarti)).
+
+% -------------------------------------------------
+% Test: spia + prete + contessa in sequenza su tre giocatori
+% verifica scarti e che carta_posseduta sopravviva alla contessa
+% -------------------------------------------------
+test_spia_prete_contessa :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, spia),
+                carta_giocata(b, prete, c, barone),
+                carta_giocata(c, contessa)],
+               CF),
+    CF = conoscenza(_, Info, _, Scarti),
+    check(spc_spia_scartata,
+          member(spia, Scarti)),
+    check(spc_prete_scartato,
+          member(prete, Scarti)),
+    check(spc_contessa_scartata,
+          member(contessa, Scarti)),
+    check(spc_c_possiede_barone,
+          member(carta_posseduta(c, barone), Info)).
+
+% -------------------------------------------------
+% Test: principe + guardia mancata sullo stesso bersaglio
+% a gioca principe su b (b scarta barone), poi c gioca guardia su b sbagliando
+% verifica barone in scarti + carta_non_posseduta + carta_non_posseduta(a, contessa)
+% -------------------------------------------------
+test_principe_poi_guardia_mancata :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, principe, b, barone),
+                carta_giocata(c, guardia, b, prete, false)],
+               CF),
+    CF = conoscenza(_, Info, _, Scarti),
+    check(ppgm_barone_in_scarti,
+          member(barone, Scarti)),
+    check(ppgm_non_contessa_a,
+          member(carta_non_posseduta(a, contessa), Info)),
+    check(ppgm_non_prete_b,
+          member(carta_non_posseduta(prete), Info)).
+
+% -------------------------------------------------
+% Test: barone (vince a) poi re semplice (a scambia con c)
+% carta_superiore(a, 1) viene rimossa da carta_scartata(a, re) (re vale 7 >= 1)
+% ma carta_non_posseduta(a, contessa) viene aggiunta e scambiata → carta_non_posseduta(c, contessa)
+% -------------------------------------------------
+test_barone_poi_re_semplice :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, barone, b, b, guardia),
+                carta_giocata(a, re, c)],
+               CF),
+    CF = conoscenza(Giocatori, Info, _, _),
+    check(bpr_b_rimosso,
+          \+ member(b, Giocatori)),
+    check(bpr_non_contessa_trasferita_a_c,
+          member(carta_non_posseduta(c, contessa), Info)).
+
+% -------------------------------------------------
+% Test: cancelliere pieno + cancelliere semplice scalano le posizioni
+% a gioca cancelliere tenendo guardia (prete pos 2, barone pos 1)
+% b gioca cancelliere semplice → posizioni incrementate di 2
+% risultato atteso: prete pos 4, barone pos 3
+% -------------------------------------------------
+test_cancelliere_scala_posizioni :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, cancelliere, guardia, prete, barone),
+                carta_giocata(b, cancelliere)],
+               CF),
+    CF = conoscenza(_, Info, _, _),
+    check(cancelliere_scala_prete,
+          member(carta_in_posizione(prete, 4), Info)),
+    check(cancelliere_scala_barone,
+          member(carta_in_posizione(barone, 3), Info)).
+
+% -------------------------------------------------
+% Test: re con carte note + contessa sul giocatore che ha ricevuto la carta
+% a ha guardia, b ha prete; a scambia con b (a ottiene prete, b ottiene guardia)
+% poi b gioca contessa
+% -------------------------------------------------
+test_re_noto_poi_contessa :-
+    C0 = conoscenza([a, b, c],
+                    [carta_posseduta(a, guardia), carta_posseduta(b, prete)],
+                    sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, re, b, guardia, prete),
+                carta_giocata(b, contessa)],
+               CF),
+    CF = conoscenza(_, Info, _, Scarti),
+    check(rnpc_a_ha_prete,
+          member(carta_posseduta(a, prete), Info)),
+    check(rnpc_contessa_scartata,
+          member(contessa, Scarti)).
+
+% -------------------------------------------------
+% Test: domestica + principe + spia (tre carte semplici in fila)
+% verifica che tutti e tre i valori siano in scarti
+% -------------------------------------------------
+test_domestica_principe_spia :-
+    C0 = conoscenza([a, b, c], [], sconosciuta, []),
+    reg_eventi(C0,
+               [carta_giocata(a, domestica),
+                carta_giocata(b, principe, c, prete),
+                carta_giocata(a, spia)],
+               CF),
+    CF = conoscenza(_, _, _, Scarti),
+    check(dps_domestica,
+          member(domestica, Scarti)),
+    check(dps_principe,
+          member(principe, Scarti)),
+    check(dps_prete,
+          member(prete, Scarti)),
+    check(dps_spia,
+          member(spia, Scarti)).
