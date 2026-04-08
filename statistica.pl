@@ -3,14 +3,15 @@
 % Restituisce per ogni carta, il numero di possibili stati in cui appare.
 % La lista è a coppie Numero-Carta ed è ordinata dal maggiore al minore.
 occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, NStati) :-
+    aggregate_all(bag(Carta), (
+                      stato_possibile(Conoscenza, stato(CarteInMano, _, _)),
+                      member(Giocatore-Carta, CarteInMano)
+                              ),
+                  CarteGiocatore
+    ),
     aggregate_all(bag(C-N), (
                       carta(C),
-                      aggregate_all(count, (
-                                        stato_possibile(Conoscenza, stato(CarteInMano, _, _)),
-                                        member(Giocatore-C, CarteInMano)
-                                           ),
-                                    N
-                      )
+                      aggregate_all(count, member(C, CarteGiocatore), N)
                             ), CoppieGrezze),
     transpose_pairs(CoppieGrezze, CoppieGrezze2),
     reverse(CoppieGrezze2, Coppie),
