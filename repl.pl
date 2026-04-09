@@ -36,6 +36,10 @@ rg(G, C, A1, A2) :-
 rg(G, C, A1, A2, A3) :-
     registra(carta_giocata(G, C, A1, A2, A3)).
 
+% Scorciatoia per registra(carta_vista(...))
+rv(G, C) :-
+  registra(carta_vista(G, C)).
+
 annulla :-
     storia(S1),
     S1 = [_  |S2],

@@ -1,7 +1,7 @@
 :- consult(mazzo),
 consult(statistica),
 consult(conoscenza),
-initialization(main).
+initialization(test).
 
 %write('=== ANALISI: probabilità mano di pippo dopo il gioco di 2 cancellieri ==='), nl,
 %C1 = conoscenza([pippo, pluto], [carta_uguale(pippo, pluto), carta_non_posseduta(pippo, principessa)], sconosciuta, []),
@@ -12,7 +12,7 @@ initialization(main).
 %reg_eventi(C1, [carta_giocata(pluto, cancelliere, re, barone, prete), carta_giocata(pippo, contessa)], C2),
 %stampa_probabilita_mano(C2, pippo).
 
-main :-
+test :-
     run_test(test_carta_scartata),
     run_test(test_carta_vista),
     run_test(test_eliminato),

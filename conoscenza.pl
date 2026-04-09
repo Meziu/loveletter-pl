@@ -9,7 +9,10 @@
 
 :- consult(mazzo).
 
-conoscenza_valida(conoscenza(_, Informazioni, CartaRimossa, Scarti)) :-
+conoscenza_valida(conoscenza(Giocatori, Informazioni, CartaRimossa, Scarti)) :-
+    length(Giocatori, L),
+    L > 0,
+    L =< 6,
     is_list(Informazioni),
     (CartaRimossa = sconosciuta -> true ; carta(CartaRimossa)),
     lista_di_carte(Scarti).
@@ -373,6 +376,11 @@ reg_eventi(C, [], C).
 reg_eventi(C1, [E  |R], CF) :-
     reg_evento(C1, E, C2),
     reg_eventi(C2, R, CF).
+
+% Se rimane un singolo giocatore, ha vinto.
+vittoria(conoscenza([Vincente], _, _, _), Vincente).
+% Se finiscono le carte, vince quello con carta più alta.
+% TODO: Come facciamo a sapere le carte alla fine del round? Obbligo di carta_posseduta?
 
 % Stato di gioco possibile data una conoscenza. Non deterministico.
 %
