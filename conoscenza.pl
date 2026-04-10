@@ -377,10 +377,32 @@ reg_eventi(C1, [E  |R], CF) :-
     reg_evento(C1, E, C2),
     reg_eventi(C2, R, CF).
 
+fine_partita(conoscenza([], _, _, _)).
+fine_partita(conoscenza([_], _, _, _)).
+fine_partita(conoscenza(Giocatori, Informazioni, _, Scarti)) :-
+  length(Giocatori, LG),
+  length(Scarti, LS),
+  LS =:= 20 - LG.
+
 % Se rimane un singolo giocatore, ha vinto.
-vittoria(conoscenza([Vincente], _, _, _), Vincente).
+vittoria(conoscenza([Vincitore], _, _, _), [Vincitore]) :- !.
 % Se finiscono le carte, vince quello con carta più alta.
-% TODO: Come facciamo a sapere le carte alla fine del round? Obbligo di carta_posseduta?
+vittoria(Conoscenza, Vincitori) :-
+  Conoscenza = conoscenza(Giocatori, Informazioni, _, Scarti),
+  fine_partita(Conoscenza),
+  findall(
+    V-G,
+    (
+      member(carta_posseduta(G, C), Informazioni),
+      valore(C, V)
+    ),
+    PunteggiFinali
+  ),
+  length(PunteggiFinali, LF),
+  LF =:= LG,
+  sort(1, @>=, PunteggiFinali, Classifica),
+  group_pairs_by_key(Classifica, GruppiDiPunteggio),
+  GruppiDiPunteggio = [_-Vincitori | _].
 
 % Stato di gioco possibile data una conoscenza. Non deterministico.
 %
