@@ -3,35 +3,29 @@
 % conoscenza(
 %   Giocatori,        % lista dei nomi dei giocatori
 %   Informazioni,     % lista di informazioni riguardo alle carte in gioco
-%   CartaRimossa,     % 'sconosciuta' oppure una carta specifica
 %   Scarti            % lista di carte visibili a tutti
 % )
 
 :- consult(mazzo).
 
-conoscenza_valida(conoscenza(Giocatori, Informazioni, CartaRimossa, Scarti)) :-
+conoscenza_valida(conoscenza(Giocatori, Informazioni, Scarti)) :-
     length(Giocatori, L),
     L > 0,
     L =< 6,
     is_list(Informazioni),
-    (CartaRimossa = sconosciuta -> true ; carta(CartaRimossa)),
     lista_di_carte(Scarti).
 
-nuova_conoscenza(Giocatori, conoscenza(Giocatori, [], sconosciuta, [])).
+nuova_conoscenza(Giocatori, conoscenza(Giocatori, [], [])).
 
-stampa_conoscenza(conoscenza(Giocatori, Informazioni, CartaRimossa, Scarti)) :-
+stampa_conoscenza(conoscenza(Giocatori, Informazioni, Scarti)) :-
     format("  Giocatori in partita: ~w~n", [Giocatori]),
     format("  Informazioni note: ~w~n", [Informazioni]),
-    format("  Carta rimossa: ~w~n", [CartaRimossa]),
     format("  Scarti: ~w~n", [Scarti]).
 
 % Multiset delle carte in gioco
 inizializza_multiset(
-                     conoscenza(_, _, CartaRimossa, Scarti), Multiset) :-
-    (CartaRimossa = sconosciuta
-    ->  CarteNote = Scarti
-    ;   CarteNote = [CartaRimossa  |Scarti]
-    ),
+                     conoscenza(_, _, Scarti), Multiset) :-
+    CarteNote = Scarti,
     findall(Carta-CopieLibere,
             (
                 carta(Carta),
@@ -175,45 +169,45 @@ risolvi_uguaglianze(Giocatore, Carta, [CU  |R1], [CU  |R2]) :-
 
 % Carta scartata nel proprio turno
 reg_evento(
-           conoscenza(Giocatori, Informazioni, Rimossa, Scarti),
+           conoscenza(Giocatori, Informazioni, Scarti),
            carta_scartata(Giocatore, Carta),
-           conoscenza(Giocatori, NuoveInformazioni, Rimossa, NuoviScarti)) :-
+           conoscenza(Giocatori, NuoveInformazioni, NuoviScarti)) :-
     exclude(riguarda(Giocatore, Carta), Informazioni, NuoveInformazioni),
     NuoviScarti = [Carta  |Scarti].
 % Carta scartata nel turno avversario (forzatamente)
 reg_evento(
-           conoscenza(Giocatori, Info1, Rimossa, Scarti),
+           conoscenza(Giocatori, Info1, Scarti),
            carta_tolta(Giocatore, Carta),
-           conoscenza(Giocatori, NuoveInformazioni, Rimossa, NuoviScarti)) :-
+           conoscenza(Giocatori, NuoveInformazioni, NuoviScarti)) :-
     risolvi_uguaglianze(Giocatore, Carta, Info1, Info2),
     exclude(riguarda_giocatore(Giocatore), Info2, NuoveInformazioni),
     NuoviScarti = [Carta  |Scarti].
 
 reg_evento(
-           conoscenza(Giocatori, Info1, Rimossa, Scarti),
+           conoscenza(Giocatori, Info1, Scarti),
            carta_vista(Giocatore, Carta),
-           conoscenza(Giocatori, NuoveInformazioni, Rimossa, Scarti)) :-
+           conoscenza(Giocatori, NuoveInformazioni, Scarti)) :-
     risolvi_uguaglianze(Giocatore, Carta, Info1, Info2),
     exclude(riguarda_giocatore(Giocatore), Info2, Info3),
     NuoveInformazioni = [carta_posseduta(Giocatore, Carta)  |Info3].
 
 % Giocatore eliminato in un turno diverso dal proprio, quindi aveva 1 carta in mano.
 reg_evento(
-           conoscenza(Giocatori, Info1, Rimossa, Scarti),
+           conoscenza(Giocatori, Info1, Scarti),
            giocatore_eliminato(Giocatore, CartaScartata),
            CF) :-
     delete(Giocatori, Giocatore, NuoviGiocatori),
-    C2 = conoscenza(NuoviGiocatori, Info1, Rimossa, Scarti),
+    C2 = conoscenza(NuoviGiocatori, Info1, Scarti),
     reg_evento(C2, carta_tolta(Giocatore, CartaScartata), CF).
 % Giocatore eliminato nel proprio stesso turno, quindi aveva 2 carte in mano prima di giocare.
 reg_evento(
-           conoscenza(Giocatori, Info, Rimossa, Scarti),
+           conoscenza(Giocatori, Info, Scarti),
            giocatore_autoeliminato(Giocatore, CartaScartata),
            CF) :-
     % Non risolviamo le uguaglianze poichè con due carte in mano non siamo certi di quale sia quella uguale.
     delete(Giocatori, Giocatore, NuoviGiocatori),
     exclude(riguarda_giocatore(Giocatore), Info, Info2),
-    reg_evento(conoscenza(NuoviGiocatori, Info2, Rimossa, Scarti), carta_scartata(Giocatore, CartaScartata), CF).
+    reg_evento(conoscenza(NuoviGiocatori, Info2, Scarti), carta_scartata(Giocatore, CartaScartata), CF).
 
 % Effetti delle carte
 reg_evento(
@@ -229,13 +223,13 @@ reg_evento(
     bool(IsEliminato),
     CartaScelta \== guardia, % Per regolamento, non si può dire "guardia"
     reg_evento(C1, carta_scartata(Giocatore, guardia), C2),
-    C2 = conoscenza(Giocatori, I2, Rimossa, NuoviScarti),
+    C2 = conoscenza(Giocatori, I2, NuoviScarti),
     (
         IsEliminato == true ->
             reg_evento(C2, giocatore_eliminato(Bersaglio, CartaScelta), CF)
     ;
         IsEliminato == false ->
-            CF = conoscenza(Giocatori, [carta_non_posseduta(Bersaglio, CartaScelta)  |I2], Rimossa, NuoviScarti)
+            CF = conoscenza(Giocatori, [carta_non_posseduta(Bersaglio, CartaScelta)  |I2], NuoviScarti)
     ;
         fail
     ).
@@ -258,8 +252,8 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, barone, Bersaglio),
            CF) :-
-    reg_evento(C1, carta_scartata(Giocatore, barone), conoscenza(Giocatori, I2, Rimossa, Scarti)),
-    CF = conoscenza(Giocatori, [carta_uguale(Giocatore, Bersaglio)  |I2], Rimossa, Scarti).
+    reg_evento(C1, carta_scartata(Giocatore, barone), conoscenza(Giocatori, I2, Scarti)),
+    CF = conoscenza(Giocatori, [carta_uguale(Giocatore, Bersaglio)  |I2], Scarti).
 
 reg_evento(
            C1,
@@ -271,15 +265,15 @@ reg_evento(
     (
         Giocatore \= Eliminato ->
             Vincitore = Giocatore,
-            reg_evento(C2, giocatore_eliminato(Bersaglio, CartaEliminata), conoscenza(Giocatori, I3, Rimossa, Scarti))
+            reg_evento(C2, giocatore_eliminato(Bersaglio, CartaEliminata), conoscenza(Giocatori, I3, Scarti))
     ;
         Bersaglio \= Eliminato ->
             Vincitore = Bersaglio,
-            reg_evento(C2, giocatore_autoeliminato(Giocatore, CartaEliminata), conoscenza(Giocatori, I3, Rimossa, Scarti))
+            reg_evento(C2, giocatore_autoeliminato(Giocatore, CartaEliminata), conoscenza(Giocatori, I3, Scarti))
     ;
         fail
     ),
-    CF = conoscenza(Giocatori, [carta_superiore(Vincitore, V)  |I3], Rimossa, Scarti).
+    CF = conoscenza(Giocatori, [carta_superiore(Vincitore, V)  |I3], Scarti).
 
 reg_evento(
            C1,
@@ -291,10 +285,10 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, principe, Bersaglio, CartaScartata),
            CF) :-
-    reg_evento(C1, carta_scartata(Giocatore, principe), conoscenza(Giocatori, I2, Rimossa, Scarti)),
+    reg_evento(C1, carta_scartata(Giocatore, principe), conoscenza(Giocatori, I2, Scarti)),
     (
         Giocatore \== Bersaglio ->
-            C3 = conoscenza(Giocatori, [carta_non_posseduta(Giocatore, contessa)  |I2], Rimossa, Scarti),
+            C3 = conoscenza(Giocatori, [carta_non_posseduta(Giocatore, contessa)  |I2], Scarti),
             % Principessa è l'unica carta con un effetto quando viene scartata.
             (
                 CartaScartata == principessa ->
@@ -303,7 +297,7 @@ reg_evento(
                 reg_evento(C3, carta_tolta(Bersaglio, CartaScartata), CF)
             )
     ;
-        C2 = conoscenza(Giocatori, I2, Rimossa, Scarti),
+        C2 = conoscenza(Giocatori, I2, Scarti),
         (
             CartaScartata == principessa ->
                 reg_evento(C2, giocatore_autoeliminato(Bersaglio, CartaScartata), CF)
@@ -317,14 +311,14 @@ reg_evento(
            carta_giocata(Giocatore, cancelliere, CartaTenuta, CartaPenultima, CartaUltima),
            CF) :-
     reg_evento(C1, carta_giocata(Giocatore, cancelliere), C2),
-    reg_evento(C2, carta_vista(Giocatore, CartaTenuta), conoscenza(Giocatori, I3, Rimossa, Scarti)),
-    CF = conoscenza(Giocatori, [carta_in_posizione(CartaPenultima, 2), carta_in_posizione(CartaUltima, 1)  |I3], Rimossa, Scarti).
+    reg_evento(C2, carta_vista(Giocatore, CartaTenuta), conoscenza(Giocatori, I3, Scarti)),
+    CF = conoscenza(Giocatori, [carta_in_posizione(CartaPenultima, 2), carta_in_posizione(CartaUltima, 1)  |I3], Scarti).
 
 reg_evento(
            C1,
            carta_giocata(Giocatore, cancelliere),
-           conoscenza(Giocatori, NuoveInformazioni, Rimossa, Scarti)) :-
-    reg_evento(C1, carta_scartata(Giocatore, cancelliere), conoscenza(Giocatori, I2, Rimossa, Scarti)),
+           conoscenza(Giocatori, NuoveInformazioni, Scarti)) :-
+    reg_evento(C1, carta_scartata(Giocatore, cancelliere), conoscenza(Giocatori, I2, Scarti)),
     findall(InfoF,
             (
                 member(Info, I2),
@@ -343,8 +337,8 @@ reg_evento(
 reg_evento(
            C1,
            carta_giocata(Giocatore, re, Bersaglio),
-           conoscenza(Giocatori, NuoveInformazioni, Rimossa, Scarti)) :-
-    reg_evento(C1, carta_scartata(Giocatore, re), conoscenza(Giocatori, I2, Rimossa, Scarti)),
+           conoscenza(Giocatori, NuoveInformazioni, Scarti)) :-
+    reg_evento(C1, carta_scartata(Giocatore, re), conoscenza(Giocatori, I2, Scarti)),
     I3 = [carta_non_posseduta(Giocatore, contessa)  |I2],
     % Scambio di giocatore nelle info
     scambio_informazioni(Giocatore, Bersaglio, I3, NuoveInformazioni).
@@ -353,9 +347,9 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, re, Bersaglio, CartaPassata, CartaOttenuta),
            CF) :-
-    reg_evento(C1, carta_scartata(Giocatore, re), conoscenza(Giocatori2, I2, Rimossa2, Scarti2)),
+    reg_evento(C1, carta_scartata(Giocatore, re), conoscenza(Giocatori2, I2, Scarti2)),
     scambio_informazioni(Giocatore, Bersaglio, I2, I3),
-    reg_evento(conoscenza(Giocatori2, I3, Rimossa2, Scarti2), carta_vista(Giocatore, CartaOttenuta), C4),
+    reg_evento(conoscenza(Giocatori2, I3, Scarti2), carta_vista(Giocatore, CartaOttenuta), C4),
     reg_evento(C4, carta_vista(Bersaglio, CartaPassata), CF).
 
 reg_evento(
@@ -377,19 +371,20 @@ reg_eventi(C1, [E  |R], CF) :-
     reg_evento(C1, E, C2),
     reg_eventi(C2, R, CF).
 
-fine_partita(conoscenza([], _, _, _)).
-fine_partita(conoscenza([_], _, _, _)).
-fine_partita(conoscenza(Giocatori, Informazioni, _, Scarti)) :-
+fine_partita(conoscenza([], _, _)).
+fine_partita(conoscenza([_], _, _)).
+fine_partita(conoscenza(Giocatori, _, Scarti)) :-
   length(Giocatori, LG),
   length(Scarti, LS),
   LS =:= 20 - LG.
 
 % Se rimane un singolo giocatore, ha vinto.
-vittoria(conoscenza([Vincitore], _, _, _), [Vincitore]) :- !.
+vittoria(conoscenza([Vincitore], _, _), [Vincitore]) :- !.
 % Se finiscono le carte, vince quello con carta più alta.
 vittoria(Conoscenza, Vincitori) :-
-  Conoscenza = conoscenza(Giocatori, Informazioni, _, Scarti),
+  Conoscenza = conoscenza(Giocatori, Informazioni, _),
   fine_partita(Conoscenza),
+  length(Giocatori, LG),
   findall(
     V-G,
     (
@@ -409,7 +404,7 @@ vittoria(Conoscenza, Vincitori) :-
 % Struttura di uno stato:
 % stato([Giocatore-CartaInMano, ...], [CartaNelMazzo-NumeroDiCopie, ...], CartaRimossa)
 stato_possibile(C, stato(ManoGiocatori, M2, CartaRimossa), Peso) :-
-    C = conoscenza(Giocatori, Informazioni, _, _),
+    C = conoscenza(Giocatori, Informazioni, _),
     inizializza_multiset(C, M0),
     pesca_da_multiset(CartaRimossa, M0, M1, P1),
     mano_giocatori(Giocatori, Informazioni, M1, ManoGiocatori, [], M2, P2),
