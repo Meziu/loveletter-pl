@@ -10,10 +10,10 @@
 
 conoscenza_valida(conoscenza(Giocatori, Informazioni, Scarti)) :-
     length(Giocatori, L),
-    L > 0,
+    L > 1,
     L =< 6,
     is_list(Informazioni),
-    lista_di_carte(Scarti).
+    is_lista_carte(Scarti).
 
 nuova_conoscenza(Giocatori, conoscenza(Giocatori, [], [])).
 

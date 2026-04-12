@@ -39,6 +39,10 @@ conta(_, [], 0).
 conta(X, [X|T], N) :- !, conta(X, T, N1), N is N1 + 1.
 conta(X, [_|T], N) :- conta(X, T, N).
 
+% Si tratta di una lista di carte
+is_lista_carte(L) :-
+    forall(member(M, L), carta(M)).
+
 % Multiset lista di coppie carta-conteggio, es: [guardia-3, prete-2, ...]
 
 % Aggiorna il conteggio di una carta nel multiset

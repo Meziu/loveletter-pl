@@ -41,6 +41,7 @@ test :-
     run_test(test_barone_poi_re_semplice),
     run_test(test_domestica_principe_spia),
     run_test(test_cancelliere_scala_posizioni),
+    run_test(test_fine_partita),
     writeln('Fine test.').
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -506,3 +507,7 @@ test_domestica_principe_spia :-
           member(prete, Scarti)),
     check(dps_spia,
           member(spia, Scarti)).
+
+test_fine_partita:-
+    C = conoscenza([pippo, pluto, paperino], [carta_non_posseduta(paperino, barone), carta_non_posseduta(pippo, contessa)], [guardia, guardia, principe, spia, spia, guardia, re, barone, principe, guardia, guardia, cancelliere, cancelliere, domestica, domestica, contessa, guardia]),
+    check(fine_partita_a_3, fine_partita(C)).

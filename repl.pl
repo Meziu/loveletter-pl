@@ -5,10 +5,9 @@ consult(statistica).
 :- dynamic storia/1.
 
 inizia(Giocatori) :-
-    length(Giocatori, L),
-    L > 1,
     finisci,
     nuova_conoscenza(Giocatori, C),
+    conoscenza_valida(C),
     asserta(storia([C])).
 
 finisci :-
