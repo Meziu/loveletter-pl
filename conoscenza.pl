@@ -214,6 +214,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, spia),
            CF) :-
+    !,
     reg_evento(C1, carta_scartata(Giocatore, spia), CF).
 
 reg_evento(
@@ -279,6 +280,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, domestica),
            CF) :-
+    !,
     reg_evento(C1, carta_scartata(Giocatore, domestica), CF).
 
 reg_evento(
@@ -318,6 +320,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, cancelliere),
            conoscenza(Giocatori, NuoveInformazioni, Scarti)) :-
+    !,
     reg_evento(C1, carta_scartata(Giocatore, cancelliere), conoscenza(Giocatori, I2, Scarti)),
     findall(InfoF,
             (
@@ -356,6 +359,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, contessa),
            CF) :-
+           !,
     reg_evento(C1, carta_scartata(Giocatore, contessa), CF).
 
 reg_evento(
@@ -364,6 +368,13 @@ reg_evento(
            CF) :-
     reg_evento(C1, carta_scartata(Giocatore, principessa), C2),
     reg_evento(C2, giocatore_autoeliminato(Giocatore, AltraCarta), CF).
+
+% Fallback per quando una qualunque carta non può essere attivata
+% (e.g. guardia quando tutti gli avversari hanno la domestica attiva).
+reg_evento(C1, carta_giocata(Giocatore, Carta), C2) :-
+  !,
+  reg_evento(C1, carta_scartata(Giocatore, Carta), CF).
+
 
 % Registrazione ordinata di una lista di eventi
 reg_eventi(C, [], C).
