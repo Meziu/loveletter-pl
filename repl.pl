@@ -38,7 +38,7 @@ rg(G, C, A1, A2, A3) :-
 
 % Scorciatoia per registra(carta_vista(...))
 rv(G, C) :-
-  registra(carta_vista(G, C)).
+    registra(carta_vista(G, C)).
 
 annulla :-
     storia(S1),

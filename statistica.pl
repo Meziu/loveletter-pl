@@ -1,7 +1,6 @@
 :- consult(conoscenza).
 
 % Restituisce per ogni carta, il numero di possibili stati in cui appare.
-% La lista è a coppie Numero-Carta ed è ordinata dal maggiore al minore.
 occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, NStati) :-
     aggregate_all(bag(Carta-Peso), (
                       stato_possibile(Conoscenza, stato(CarteInMano, _, _), Peso),

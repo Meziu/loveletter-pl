@@ -17,15 +17,18 @@ conoscenza_valida(conoscenza(Giocatori, Informazioni, Scarti)) :-
 
 nuova_conoscenza(Giocatori, conoscenza(Giocatori, [], [])).
 
+giocatori(conoscenza(G, _, _), G).
+informazioni(conoscenza(_, I, _), I).
+scarti(conoscenza(_, _, S), S).
+
 stampa_conoscenza(conoscenza(Giocatori, Informazioni, Scarti)) :-
     format("  Giocatori in partita: ~w~n", [Giocatori]),
     format("  Informazioni note: ~w~n", [Informazioni]),
     format("  Scarti: ~w~n", [Scarti]).
 
 % Multiset delle carte in gioco
-inizializza_multiset(
-                     conoscenza(_, _, Scarti), Multiset) :-
-    CarteNote = Scarti,
+inizializza_multiset(Conoscenza, Multiset) :-
+    scarti(Conoscenza, CarteNote),
     findall(Carta-CopieLibere,
             (
                 carta(Carta),
@@ -359,7 +362,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, contessa),
            CF) :-
-           !,
+    !,
     reg_evento(C1, carta_scartata(Giocatore, contessa), CF).
 
 reg_evento(
@@ -371,9 +374,9 @@ reg_evento(
 
 % Fallback per quando una qualunque carta non può essere attivata
 % (e.g. guardia quando tutti gli avversari hanno la domestica attiva).
-reg_evento(C1, carta_giocata(Giocatore, Carta), C2) :-
-  !,
-  reg_evento(C1, carta_scartata(Giocatore, Carta), CF).
+reg_evento(C1, carta_giocata(Giocatore, Carta), CF) :-
+    !,
+    reg_evento(C1, carta_scartata(Giocatore, Carta), CF).
 
 
 % Registrazione ordinata di una lista di eventi
@@ -385,30 +388,30 @@ reg_eventi(C1, [E  |R], CF) :-
 fine_partita(conoscenza([], _, _)).
 fine_partita(conoscenza([_], _, _)).
 fine_partita(conoscenza(Giocatori, _, Scarti)) :-
-  length(Giocatori, LG),
-  length(Scarti, LS),
-  LS =:= 20 - LG.
+    length(Giocatori, LG),
+    length(Scarti, LS),
+    LS =:= 20 - LG.
 
 % Se rimane un singolo giocatore, ha vinto.
 vittoria(conoscenza([Vincitore], _, _), [Vincitore]) :- !.
 % Se finiscono le carte, vince quello con carta più alta.
 vittoria(Conoscenza, Vincitori) :-
-  Conoscenza = conoscenza(Giocatori, Informazioni, _),
-  fine_partita(Conoscenza),
-  length(Giocatori, LG),
-  findall(
-    V-G,
-    (
-      member(carta_posseduta(G, C), Informazioni),
-      valore(C, V)
+    Conoscenza = conoscenza(Giocatori, Informazioni, _),
+    fine_partita(Conoscenza),
+    length(Giocatori, LG),
+    findall(
+        V-G,
+        (
+            member(carta_posseduta(G, C), Informazioni),
+            valore(C, V)
+        ),
+        PunteggiFinali
     ),
-    PunteggiFinali
-  ),
-  length(PunteggiFinali, LF),
-  LF =:= LG,
-  sort(1, @>=, PunteggiFinali, Classifica),
-  group_pairs_by_key(Classifica, GruppiDiPunteggio),
-  GruppiDiPunteggio = [_-Vincitori | _].
+    length(PunteggiFinali, LF),
+    LF =:= LG,
+    sort(1, @>=, PunteggiFinali, Classifica),
+    group_pairs_by_key(Classifica, GruppiDiPunteggio),
+    GruppiDiPunteggio = [_-Vincitori  |_].
 
 % Stato di gioco possibile data una conoscenza. Non deterministico.
 %
