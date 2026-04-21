@@ -6,7 +6,11 @@
 %   Scarti            % lista di carte visibili a tutti
 % )
 
-:- consult(mazzo).
+:- module(conoscenza, [conoscenza_valida/1, nuova_conoscenza/2, giocatori/2, informazioni/2, scarti/2, stampa_conoscenza/1, reg_evento/3, reg_eventi/3, fine_partita/1, stato_possibile/3]).
+
+:- use_module(mazzo),
+use_module(cardset),
+use_module(helpers).
 
 conoscenza_valida(conoscenza(Giocatori, Informazioni, Scarti)) :-
     length(Giocatori, L),
@@ -25,19 +29,6 @@ stampa_conoscenza(conoscenza(Giocatori, Informazioni, Scarti)) :-
     format("  Giocatori in partita: ~w~n", [Giocatori]),
     format("  Informazioni note: ~w~n", [Informazioni]),
     format("  Scarti: ~w~n", [Scarti]).
-
-% Multiset delle carte in gioco
-inizializza_multiset(Conoscenza, Multiset) :-
-    scarti(Conoscenza, CarteNote),
-    findall(Carta-CopieLibere,
-            (
-                carta(Carta),
-                numero_copie(Carta, TotCopie),
-                conta(Carta, CarteNote, Usate),
-                CopieLibere is TotCopie - Usate,
-                CopieLibere >= 0
-            ),
-            Multiset).
 
 % Informazioni sulla mano:
 %
@@ -392,6 +383,7 @@ fine_partita(conoscenza(Giocatori, _, Scarti)) :-
     length(Scarti, LS),
     LS =:= 20 - LG.
 
+% TODO: modifica (in "punteggio"?) per ottenere il punteggio (conteggio con le spie)
 % Se rimane un singolo giocatore, ha vinto.
 vittoria(conoscenza([Vincitore], _, _), [Vincitore]) :- !.
 % Se finiscono le carte, vince quello con carta più alta.

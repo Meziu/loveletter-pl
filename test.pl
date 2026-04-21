@@ -1,6 +1,6 @@
-:- consult(mazzo),
-consult(statistica),
-consult(conoscenza),
+:- use_module('gioco/mazzo'),
+use_module(statistica),
+use_module('gioco/conoscenza'),
 initialization(test).
 
 %write('=== ANALISI: probabilità mano di pippo dopo il gioco di 2 cancellieri ==='), nl,

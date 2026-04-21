@@ -1,4 +1,6 @@
-:- consult(conoscenza).
+:- module(statistica, [occorrenze_carta_in_mano/4, mano_piu_probabile/3, entropia_mano/3, delta_entropia_mano/4, stampa_probabilita_mano/2]).
+
+:- use_module('gioco/conoscenza').
 
 % Restituisce per ogni carta, il numero di possibili stati in cui appare.
 occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, NStati) :-

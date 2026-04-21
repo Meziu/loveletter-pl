@@ -1,7 +1,8 @@
 % Stateful REPL con semplici comandi per poter gestire una partita in tempo reale.
 
-:- consult(conoscenza),
-consult(statistica).
+:- use_module('gioco/conoscenza'),
+use_module(statistica).
+
 :- dynamic storia/1.
 
 inizia(Giocatori) :-
