@@ -46,6 +46,7 @@ riguarda_carta(C1, carta_non_posseduta(_, C2)) :-
 riguarda_carta(C, carta_superiore(_, V)) :-
     valore(C, Vc),
     Vc >= V.
+riguarda_carta(C, carta_in_posizione(C, _)).
 riguarda_carta(_, carta_uguale(_, _)).
 
 riguarda_giocatore(G, carta_posseduta(G, _)).
@@ -75,6 +76,10 @@ scambia_giocatore(G1, G2, carta_uguale(G1, Gd), carta_uguale(G2, Gd)) :-
     G2 \= Gd.
 scambia_giocatore(G1, G2, carta_uguale(Gd, G1), carta_uguale(Gd, G2)) :-
     G2 \= Gd.
+% info non legata a nessuno dei due giocatori: passa invariata
+scambia_giocatore(G1, G2, I, I) :-
+    \+ riguarda_giocatore(G1, I),
+    \+ riguarda_giocatore(G2, I).
 
 scambio_informazioni(G1, G2, InformazioniDaCambiare, NuoveInformazioni) :-
     G1 \== G2,
@@ -211,23 +216,15 @@ reg_evento(
     !,
     reg_evento(C1, carta_scartata(Giocatore, spia), CF).
 
-reg_evento(
-           C1,
-           carta_giocata(Giocatore, guardia, Bersaglio, CartaScelta, IsEliminato),
-           CF) :-
-    bool(IsEliminato),
-    CartaScelta \== guardia, % Per regolamento, non si può dire "guardia"
+reg_evento(C1, carta_giocata(Giocatore, guardia, Bersaglio, CartaScelta, true), CF) :-
+    CartaScelta \== guardia,
     reg_evento(C1, carta_scartata(Giocatore, guardia), C2),
-    C2 = conoscenza(Giocatori, I2, NuoviScarti),
-    (
-        IsEliminato == true ->
-            reg_evento(C2, giocatore_eliminato(Bersaglio, CartaScelta), CF)
-    ;
-        IsEliminato == false ->
-            CF = conoscenza(Giocatori, [carta_non_posseduta(Bersaglio, CartaScelta)  |I2], NuoviScarti)
-    ;
-        fail
-    ).
+    reg_evento(C2, giocatore_eliminato(Bersaglio, CartaScelta), CF).
+
+reg_evento(C1, carta_giocata(Giocatore, guardia, Bersaglio, CartaScelta, false),
+           conoscenza(Giocatori, [carta_non_posseduta(Bersaglio, CartaScelta)|I2], Scarti)) :-
+    CartaScelta \== guardia,
+    reg_evento(C1, carta_scartata(Giocatore, guardia), conoscenza(Giocatori, I2, Scarti)).
 
 % Senza conoscerne la carta
 reg_evento(
@@ -343,11 +340,11 @@ reg_evento(
 reg_evento(
            C1,
            carta_giocata(Giocatore, re, Bersaglio, CartaPassata, CartaOttenuta),
-           CF) :-
-    reg_evento(C1, carta_scartata(Giocatore, re), conoscenza(Giocatori2, I2, Scarti2)),
-    scambio_informazioni(Giocatore, Bersaglio, I2, I3),
-    reg_evento(conoscenza(Giocatori2, I3, Scarti2), carta_vista(Giocatore, CartaOttenuta), C4),
-    reg_evento(C4, carta_vista(Bersaglio, CartaPassata), CF).
+           conoscenza(Giocatori4, I5, Scarti4)) :-
+    reg_evento(C1, carta_scartata(Giocatore, re), C2),
+    reg_evento(C2, carta_vista(Giocatore, CartaPassata), C3),
+    reg_evento(C3, carta_vista(Bersaglio, CartaOttenuta), conoscenza(Giocatori4, I4, Scarti4)),
+    scambio_informazioni(Giocatore, Bersaglio, I4, I5).
 
 reg_evento(
            C1,

@@ -1,4 +1,4 @@
-:- module(helpers, [conta/3, is_lista_carte/1, rimuovi_primo/3, bool/1]).
+:- module(helpers, [conta/3, is_lista_carte/1, rimuovi_primo/3]).
 
 :- use_module(mazzo).
 
@@ -16,7 +16,3 @@ rimuovi_primo(_, [], []).
 rimuovi_primo(X, [X|T], T) :- !.
 rimuovi_primo(X, [H|T], [H|R]) :-
     rimuovi_primo(X, T, R).
-
-% TODO: trovare una soluzione migliore
-bool(true).
-bool(false).
