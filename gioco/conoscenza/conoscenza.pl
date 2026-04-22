@@ -14,8 +14,7 @@
 
 conoscenza_valida(conoscenza(Giocatori, Informazioni, Scarti)) :-
     length(Giocatori, L),
-    L > 1,
-    L =< 6,
+    between(1, 6, L),
     is_list(Informazioni),
     is_lista_carte(Scarti).
 
