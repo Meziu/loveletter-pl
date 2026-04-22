@@ -1,7 +1,7 @@
 :- module(cardset, [inizializza_multiset/2, aggiorna_copie/4, rimuovi_da_multiset/3, pesca_da_multiset/4, carte_in_multiset/2]).
 
 :- use_module(mazzo),
-    use_module(conoscenza),
+    use_module('conoscenza/conoscenza'),
     use_module(helpers).
 
 % Multiset lista di coppie carta-conteggio, es: [guardia-3, prete-2, ...]

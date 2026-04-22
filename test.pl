@@ -1,7 +1,6 @@
-:- use_module('gioco/mazzo'),
-use_module(statistica),
-use_module('gioco/conoscenza'),
-initialization(test).
+:- use_module('gioco/conoscenza/conoscenza'),
+  use_module(statistica),
+  initialization(test).
 
 %write('=== ANALISI: probabilità mano di pippo dopo il gioco di 2 cancellieri ==='), nl,
 %C1 = conoscenza([pippo, pluto], [carta_uguale(pippo, pluto), carta_non_posseduta(pippo, principessa)], []),
