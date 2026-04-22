@@ -2,6 +2,19 @@
 
 :- use_module('../cardset').
 
+% Cardset delle carte in gioco
+inizializza_cardset(Conoscenza, Cardset) :-
+    scarti(Conoscenza, CarteNote),
+    findall(Carta-CopieLibere,
+            (
+                carta(Carta),
+                numero_copie(Carta, TotCopie),
+                conta(Carta, CarteNote, Usate),
+                CopieLibere is TotCopie - Usate,
+                CopieLibere >= 0
+            ),
+            Cardset).
+
 % Stato di gioco possibile data una conoscenza. Non deterministico.
 %
 % Struttura di uno stato:
@@ -10,13 +23,13 @@
 %
 stato_possibile(C, stato(ManoGiocatori, M2, CartaRimossa), Peso) :-
     C = conoscenza(Giocatori, Informazioni, _),
-    inizializza_multiset(C, M0),
-    pesca_da_multiset(CartaRimossa, M0, M1, P1),
+    inizializza_cardset(C, M0),
+    pesca_da_cardset(CartaRimossa, M0, M1, P1),
     mano_giocatori(Giocatori, Informazioni, M1, ManoGiocatori, [], M2, P2),
     Peso is P1 * P2.
 
-vincoli(G, C, Informazioni, CarteInMano, Multiset) :-
-    carte_in_multiset(Multiset, PosizioneNelMazzo),
+vincoli(G, C, Informazioni, CarteInMano, Cardset) :-
+    carte_in_cardset(Cardset, PosizioneNelMazzo),
     % Anzichè usare ->, per favorire backtracking si usa una logica inversa.
     % "Non voglio che ci sia una regola E non sia rispettata"
     \+ (
@@ -51,7 +64,7 @@ vincoli(G, C, Informazioni, CarteInMano, Multiset) :-
                          ),
                          N),
            N > 0,
-           member(C-Copie, Multiset),
+           member(C-Copie, Cardset),
            Copie =< N
        ).
 
@@ -61,13 +74,13 @@ mano_giocatori([], _, M, [], _, M, 1).
 mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale, Peso) :-
     member(carta_posseduta(G, C), Informazioni),
     rimuovi_primo(carta_posseduta(G, C), Informazioni, InformazioniRestanti),
-    pesca_da_multiset(C, M1, M2, P1),
+    pesca_da_cardset(C, M1, M2, P1),
     mano_giocatori(Gs, InformazioniRestanti, M2, R, [G-C|Acc], MFinale, P2),
     Peso is P1 * P2.
 % senza una carta nota
 mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale, Peso) :-
     \+ member(carta_posseduta(G, _), Informazioni),
-    pesca_da_multiset(C, M1, M2, P1),
-    vincoli(G, C, Informazioni, Acc, M1), % multiset considerato *prima* di pescare
+    pesca_da_cardset(C, M1, M2, P1),
+    vincoli(G, C, Informazioni, Acc, M1), % cardset considerato *prima* di pescare
     mano_giocatori(Gs, Informazioni, M2, R, [G-C|Acc], MFinale, P2),
     Peso is P1 * P2.
