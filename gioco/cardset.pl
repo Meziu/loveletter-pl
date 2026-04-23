@@ -1,4 +1,4 @@
-:- module(cardset, [cardset/1, cardset_pieno/1, cardset_vuoto/1, rimuovi_da_cardset/4, aggiungi_a_cardset/4, carta_presente/2, carte_in_cardset/2]).
+:- module(cardset, [cardset/1, cardset_pieno/1, cardset_vuoto/1, rimuovi_da_cardset/4, aggiungi_a_cardset/4, carta_presente/2, copie_carta/3, carte_in_cardset/2]).
 
 :- use_module(mazzo).
 
@@ -41,8 +41,12 @@ aggiungi_a_cardset(Carta, [H  |R], [H  |NR], NC) :-
 
 % Vero se è presente almeno una copia della carta nel cardset.
 carta_presente(Carta, Cardset) :-
-  member(Carta-N, Cardset),
-  N > 0.
+    member(Carta-N, Cardset),
+    N > 0.
+
+% Vero se è presente almeno una copia della carta nel cardset.
+copie_carta(Carta, Cardset, N) :-
+    member(Carta-N, Cardset).
 
 carte_in_cardset(Cardset, N) :-
     aggregate_all(

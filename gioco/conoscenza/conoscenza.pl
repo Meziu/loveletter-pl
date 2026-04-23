@@ -24,7 +24,7 @@ conoscenza_valida(conoscenza(Giocatori, Informazioni, Scarti)) :-
     cardset(Scarti).
 
 nuova_conoscenza(Giocatori, conoscenza(Giocatori, [], Scarti)) :-
-  cardset_vuoto(Scarti).
+    cardset_vuoto(Scarti).
 
 giocatori(conoscenza(G, _, _), G).
 informazioni(conoscenza(_, I, _), I).

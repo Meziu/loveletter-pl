@@ -169,7 +169,7 @@ test_principe :-
 test_re_scambio :-
     (   C0 = conoscenza([a, b],
                         [carta_posseduta(a, guardia)], Scarti0),
-                            cardset_vuoto(Scarti0),
+        cardset_vuoto(Scarti0),
         reg_evento(C0,
                    carta_giocata(a, re, b),
                    conoscenza(_, Info, _))
@@ -209,7 +209,7 @@ test_principessa :-
 % -------------------------------------------------
 test_principe_prete :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, principe, b, guardia),
                 carta_giocata(a, prete, c, prete)],
@@ -226,7 +226,7 @@ test_principe_prete :-
 % -------------------------------------------------
 test_barone_guardia :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, barone, b),
                 carta_giocata(c, guardia, a, principessa, false)],
@@ -242,7 +242,7 @@ test_barone_guardia :-
 test_re_scambio_cascade :-
     C0 = conoscenza([a, b, c],
                     [carta_posseduta(a, guardia), carta_posseduta(b, prete)], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, re, b, guardia, prete),
                 carta_giocata(b, contessa)],
@@ -261,7 +261,7 @@ test_re_scambio_cascade :-
 % -------------------------------------------------
 test_principessa_autoeliminazione :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, principessa, guardia)],
                CF),
@@ -276,7 +276,7 @@ test_principessa_autoeliminazione :-
 test_cancellieri_catenati :-
     C0 = conoscenza([a, b, c],
                     [carta_posseduta(a, guardia), carta_posseduta(b, prete)], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, cancelliere, guardia, prete, principessa)],
                CF),
@@ -292,7 +292,7 @@ test_cancellieri_catenati :-
 % -------------------------------------------------
 test_spia_guardia_chain :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, spia),
                 carta_giocata(b, guardia, c, prete, false)],
@@ -309,7 +309,7 @@ test_spia_guardia_chain :-
 % -------------------------------------------------
 test_prete_poi_barone :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, prete, b, guardia),
                 carta_giocata(a, barone, b)],
@@ -327,7 +327,7 @@ test_prete_poi_barone :-
 % -------------------------------------------------
 test_barone_elim_bersaglio :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, barone, b, b, guardia)],
                CF),
@@ -346,7 +346,7 @@ test_barone_elim_bersaglio :-
 % -------------------------------------------------
 test_barone_autoelim_attaccante :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, barone, b, a, prete)],
                CF),
@@ -364,7 +364,7 @@ test_barone_autoelim_attaccante :-
 % -------------------------------------------------
 test_principe_su_se_stesso :-
     C0 = conoscenza([a, b], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, principe, a, prete)],
                CF),
@@ -378,7 +378,7 @@ test_principe_su_se_stesso :-
 % -------------------------------------------------
 test_principe_forza_principessa :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, principe, b, principessa)],
                CF),
@@ -392,7 +392,7 @@ test_principe_forza_principessa :-
 % -------------------------------------------------
 test_guardia_doppia_mancata :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, guardia, b, prete, false),
                 carta_giocata(c, guardia, b, barone, false)],
@@ -411,7 +411,7 @@ test_guardia_doppia_mancata :-
 % -------------------------------------------------
 test_prete_poi_guardia_elim :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, prete, b, prete),
                 carta_giocata(c, guardia, b, prete, true)],
@@ -428,7 +428,7 @@ test_prete_poi_guardia_elim :-
 % -------------------------------------------------
 test_spia_prete_contessa :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, spia),
                 carta_giocata(b, prete, c, barone),
@@ -451,7 +451,7 @@ test_spia_prete_contessa :-
 % -------------------------------------------------
 test_principe_poi_guardia_mancata :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, principe, b, barone),
                 carta_giocata(c, guardia, b, prete, false)],
@@ -471,7 +471,7 @@ test_principe_poi_guardia_mancata :-
 % -------------------------------------------------
 test_barone_poi_re_semplice :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, barone, b, b, guardia),
                 carta_giocata(a, re, c)],
@@ -490,7 +490,7 @@ test_barone_poi_re_semplice :-
 % -------------------------------------------------
 test_cancelliere_scala_posizioni :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, cancelliere, guardia, prete, barone),
                 carta_giocata(b, cancelliere)],
@@ -509,7 +509,7 @@ test_cancelliere_scala_posizioni :-
 test_re_noto_poi_contessa :-
     C0 = conoscenza([a, b, c],
                     [carta_posseduta(a, guardia), carta_posseduta(b, prete)], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, re, b, guardia, prete),
                 carta_giocata(b, contessa)],
@@ -526,7 +526,7 @@ test_re_noto_poi_contessa :-
 % -------------------------------------------------
 test_domestica_principe_spia :-
     C0 = conoscenza([a, b, c], [], Scarti0),
-        cardset_vuoto(Scarti0),
+    cardset_vuoto(Scarti0),
     reg_eventi(C0,
                [carta_giocata(a, domestica),
                 carta_giocata(b, principe, c, prete),

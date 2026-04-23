@@ -1,8 +1,7 @@
 :- module(stato, [stato_possibile/3]).
 
 :- use_module('../mazzo'),
-use_module('../cardset'),
-use_module('../helpers').
+use_module('../cardset').
 
 % Cardset delle carte in gioco
 inizializza_mazzo(Conoscenza, Cardset) :-
@@ -11,7 +10,7 @@ inizializza_mazzo(Conoscenza, Cardset) :-
             (
                 carta(Carta),
                 numero_copie(Carta, TotCopie),
-                member(Carta-Usate, Scarti),
+                copie_carta(Carta, Scarti, Usate),
                 CopieLibere is TotCopie - Usate,
                 CopieLibere >= 0
             ),
@@ -66,7 +65,7 @@ vincoli(G, C, Informazioni, CarteInMano, Cardset) :-
                          ),
                          N),
            N > 0,
-           member(C-Copie, Cardset),
+           copie_carta(C, Cardset, Copie),
            Copie =< N
        ).
 
