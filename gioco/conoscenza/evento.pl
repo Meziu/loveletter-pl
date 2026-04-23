@@ -1,7 +1,8 @@
 :- module(evento, [reg_evento/3, reg_eventi/3]).
 
 :- use_module(informazione),
-use_module('../mazzo').
+use_module('../mazzo'),
+use_module('../cardset').
 
 risolvi_uguaglianze(_, _, [], []).
 risolvi_uguaglianze(Giocatore, Carta, [CU  |R1], [carta_posseduta(Giocatore2, Carta)  |R2]) :-
@@ -27,7 +28,7 @@ reg_evento(
            carta_scartata(Giocatore, Carta),
            conoscenza(Giocatori, NuoveInformazioni, NuoviScarti)) :-
     exclude(riguarda(Giocatore, Carta), Informazioni, NuoveInformazioni),
-    NuoviScarti = [Carta  |Scarti].
+    aggiungi_a_cardset(Carta, Scarti, NuoviScarti, _).
 % Carta scartata nel turno avversario (forzatamente)
 reg_evento(
            conoscenza(Giocatori, Info1, Scarti),
@@ -35,7 +36,7 @@ reg_evento(
            conoscenza(Giocatori, NuoveInformazioni, NuoviScarti)) :-
     risolvi_uguaglianze(Giocatore, Carta, Info1, Info2),
     exclude(riguarda_giocatore(Giocatore), Info2, NuoveInformazioni),
-    NuoviScarti = [Carta  |Scarti].
+    aggiungi_a_cardset(Carta, Scarti, NuoviScarti, _).
 
 reg_evento(
            conoscenza(Giocatori, Info1, Scarti),

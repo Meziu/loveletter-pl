@@ -1,17 +1,17 @@
 :- module(stato, [stato_possibile/3]).
 
 :- use_module('../mazzo'),
-  use_module('../cardset'),
-  use_module('../helpers').
+use_module('../cardset'),
+use_module('../helpers').
 
 % Cardset delle carte in gioco
 inizializza_mazzo(Conoscenza, Cardset) :-
-    scarti(Conoscenza, CarteNote),
+    scarti(Conoscenza, Scarti),
     findall(Carta-CopieLibere,
             (
                 carta(Carta),
                 numero_copie(Carta, TotCopie),
-                conta(Carta, CarteNote, Usate),
+                member(Carta-Usate, Scarti),
                 CopieLibere is TotCopie - Usate,
                 CopieLibere >= 0
             ),
@@ -75,7 +75,7 @@ mano_giocatori([], _, M, [], _, M, 1).
 % con carta nota
 mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale, Peso) :-
     member(carta_posseduta(G, C), Informazioni),
-    rimuovi_primo(carta_posseduta(G, C), Informazioni, InformazioniRestanti),
+    exclude(=(carta_posseduta(G, C)), Informazioni, InformazioniRestanti),
     rimuovi_da_cardset(C, M1, M2, P1),
     mano_giocatori(Gs, InformazioniRestanti, M2, R, [G-C|Acc], MFinale, P2),
     Peso is P1 * P2.

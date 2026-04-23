@@ -21,9 +21,10 @@ conoscenza_valida(conoscenza(Giocatori, Informazioni, Scarti)) :-
     length(Giocatori, L),
     between(1, 6, L),
     lista_informazioni(Informazioni),
-    lista_carte(Scarti).
+    cardset(Scarti).
 
-nuova_conoscenza(Giocatori, conoscenza(Giocatori, [], [])).
+nuova_conoscenza(Giocatori, conoscenza(Giocatori, [], Scarti)) :-
+  cardset_vuoto(Scarti).
 
 giocatori(conoscenza(G, _, _), G).
 informazioni(conoscenza(_, I, _), I).
@@ -38,7 +39,7 @@ fine_partita(conoscenza([], _, _)).
 fine_partita(conoscenza([_], _, _)).
 fine_partita(conoscenza(Giocatori, _, Scarti)) :-
     length(Giocatori, LG),
-    length(Scarti, LS),
+    carte_in_cardset(Scarti, LS),
     LS =:= 20 - LG.
 
 % TODO: modifica (in "punteggio"?) per ottenere il punteggio (conteggio con le spie)
