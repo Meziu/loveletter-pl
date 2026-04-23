@@ -1,7 +1,7 @@
 :- module(evento, [reg_evento/3, reg_eventi/3]).
 
 :- use_module(informazione),
-  use_module('../mazzo').
+use_module('../mazzo').
 
 risolvi_uguaglianze(_, _, [], []).
 risolvi_uguaglianze(Giocatore, Carta, [CU  |R1], [carta_posseduta(Giocatore2, Carta)  |R2]) :-

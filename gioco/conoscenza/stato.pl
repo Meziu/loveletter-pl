@@ -24,7 +24,7 @@ inizializza_cardset(Conoscenza, Cardset) :-
 stato_possibile(C, stato(ManoGiocatori, M2, CartaRimossa), Peso) :-
     C = conoscenza(Giocatori, Informazioni, _),
     inizializza_cardset(C, M0),
-    pesca_da_cardset(CartaRimossa, M0, M1, P1),
+    rimuovi_da_cardset(CartaRimossa, M0, M1, P1),
     mano_giocatori(Giocatori, Informazioni, M1, ManoGiocatori, [], M2, P2),
     Peso is P1 * P2.
 
@@ -74,13 +74,13 @@ mano_giocatori([], _, M, [], _, M, 1).
 mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale, Peso) :-
     member(carta_posseduta(G, C), Informazioni),
     rimuovi_primo(carta_posseduta(G, C), Informazioni, InformazioniRestanti),
-    pesca_da_cardset(C, M1, M2, P1),
+    rimuovi_da_cardset(C, M1, M2, P1),
     mano_giocatori(Gs, InformazioniRestanti, M2, R, [G-C|Acc], MFinale, P2),
     Peso is P1 * P2.
 % senza una carta nota
 mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale, Peso) :-
     \+ member(carta_posseduta(G, _), Informazioni),
-    pesca_da_cardset(C, M1, M2, P1),
+    rimuovi_da_cardset(C, M1, M2, P1),
     vincoli(G, C, Informazioni, Acc, M1), % cardset considerato *prima* di pescare
     mano_giocatori(Gs, Informazioni, M2, R, [G-C|Acc], MFinale, P2),
     Peso is P1 * P2.
