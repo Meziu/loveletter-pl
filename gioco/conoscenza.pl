@@ -8,9 +8,9 @@
 
 :- module(conoscenza, [conoscenza_valida/1, nuova_conoscenza/2, giocatori/2, informazioni/2, scarti/2, stampa_conoscenza/1, fine_partita/1]).
 
-:- use_module('../mazzo'),
-use_module('../cardset'),
-use_module(informazione).
+:- use_module(mazzo),
+use_module(cardset),
+use_module('conoscenza/informazione').
 
 % TODO: Semplificazione 'conoscenza' per permettere generazione con backtracking.
 % Plausibilmente:

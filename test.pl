@@ -1,4 +1,4 @@
-:- use_module('gioco/conoscenza/conoscenza'),
+:- use_module('gioco/conoscenza'),
 use_module('gioco/cardset'),
 use_module(statistica),
 consult(repl),

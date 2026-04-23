@@ -1,6 +1,6 @@
 % Stateful REPL con semplici comandi per poter gestire una partita in tempo reale.
 
-:- use_module('gioco/conoscenza/conoscenza'),
+:- use_module('gioco/conoscenza'),
 use_module('gioco/conoscenza/evento'),
 use_module('gioco/conoscenza/stato'),
 use_module(statistica).
