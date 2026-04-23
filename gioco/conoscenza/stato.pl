@@ -81,7 +81,7 @@ mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale, Peso) :-
 % senza una carta nota
 mano_giocatori([G|Gs], Informazioni, M1, [G-C|R], Acc, MFinale, Peso) :-
     \+ member(carta_posseduta(G, _), Informazioni),
-    rimuovi_da_cardset(C, M1, M2, P1),
     vincoli(G, C, Informazioni, Acc, M1), % cardset considerato *prima* di pescare
+    rimuovi_da_cardset(C, M1, M2, P1),
     mano_giocatori(Gs, Informazioni, M2, R, [G-C|Acc], MFinale, P2),
     Peso is P1 * P2.
