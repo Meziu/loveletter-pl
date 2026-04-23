@@ -10,13 +10,13 @@
 
 :- use_module('../mazzo'),
 use_module('../cardset'),
-use_module('../helpers').
+use_module(informazione).
 
 conoscenza_valida(conoscenza(Giocatori, Informazioni, Scarti)) :-
     length(Giocatori, L),
     between(1, 6, L),
-    is_list(Informazioni),
-    is_lista_carte(Scarti).
+    lista_informazioni(Informazioni),
+    lista_carte(Scarti).
 
 nuova_conoscenza(Giocatori, conoscenza(Giocatori, [], [])).
 

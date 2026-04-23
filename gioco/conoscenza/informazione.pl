@@ -1,3 +1,7 @@
+:- module(informazione, [informazione/1, lista_informazioni/1, riguarda/3, riguarda_carta/2, riguarda_giocatore/2, scambia_informazioni/4]).
+
+:- use_module('../mazzo').
+
 % Informazioni sulla mano:
 %
 % carta_posseduta(Giocatore, Carta) - mutuamente esclusiva alle altre info
@@ -5,10 +9,15 @@
 % carta_superiore(Giocatore, Valore)
 % carta_uguale(Giocatore, Giocatore)
 % carta_in_posizione(Carta, Posizione) - posizione dal fondo del mazzo
+informazione(carta_posseduta(_, _)).
+informazione(carta_non_posseduta(_, _)).
+informazione(carta_superiore(_, _)).
+informazione(carta_uguale(_, _)).
+informazione(carta_in_posizione(_, _)).
 
-:- module(informazione, [riguarda/3, riguarda_carta/2, riguarda_giocatore/2, scambia_informazioni/4]).
-
-:- use_module('../mazzo').
+% Si tratta di una lista di informazioni
+lista_informazioni(L) :-
+    forall(member(M, L), informazione(M)).
 
 riguarda_carta(C, carta_posseduta(_, C)).
 % "riguarda_carta" indica se un informazione è compatibile con una determinata carta.

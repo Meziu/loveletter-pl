@@ -1,4 +1,4 @@
-:- module(mazzo, [carta/1, valore/2, numero_copie/2]).
+:- module(mazzo, [carta/1, valore/2, numero_copie/2, lista_carte/1]).
 
 % Definizione delle carte
 carta(spia).
@@ -32,3 +32,7 @@ numero_copie(principessa, 1) :- !.
 numero_copie(Carta, 2) :-
     carta(Carta),
     !.
+
+% Si tratta di una lista di carte
+lista_carte(L) :-
+    forall(member(M, L), carta(M)).
