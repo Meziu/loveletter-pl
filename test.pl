@@ -1,5 +1,6 @@
 :- use_module('gioco/conoscenza/conoscenza'),
 use_module(statistica),
+consult(repl),
 initialization(test).
 
 %write('=== ANALISI: probabilità mano di pippo dopo il gioco di 2 cancellieri ==='), nl,
@@ -41,6 +42,7 @@ test :-
     run_test(test_domestica_principe_spia),
     run_test(test_cancelliere_scala_posizioni),
     run_test(test_fine_partita),
+    run_test(test_repl),
     writeln('Fine test.').
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -510,3 +512,10 @@ test_domestica_principe_spia :-
 test_fine_partita:-
     C = conoscenza([pippo, pluto, paperino], [carta_non_posseduta(paperino, barone), carta_non_posseduta(pippo, contessa)], [guardia, guardia, principe, spia, spia, guardia, re, barone, principe, guardia, guardia, cancelliere, cancelliere, domestica, domestica, contessa, guardia]),
     check(fine_partita_a_3, fine_partita(C)).
+
+test_repl:-
+    check(repl_pippo_guardia_pluto, (
+      inizia([pippo, pluto, paperins]),
+      rg(pippo, guardia, pluto, re, true),
+      p_mano(pippo)
+    )).
