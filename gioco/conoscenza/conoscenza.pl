@@ -12,6 +12,11 @@
 use_module('../cardset'),
 use_module(informazione).
 
+% TODO: Semplificazione 'conoscenza' per permettere generazione con backtracking.
+% Plausibilmente:
+% NumeroGiocatori (senza nomi, spostare il supporto ai nomi nel repl?).
+% Scarti come cardset anzichè lista.
+% Informazioni come dizionario?
 conoscenza_valida(conoscenza(Giocatori, Informazioni, Scarti)) :-
     length(Giocatori, L),
     between(1, 6, L),

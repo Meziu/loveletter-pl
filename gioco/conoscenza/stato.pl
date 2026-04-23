@@ -1,9 +1,11 @@
 :- module(stato, [stato_possibile/3]).
 
-:- use_module('../cardset').
+:- use_module('../mazzo'),
+  use_module('../cardset'),
+  use_module('../helpers').
 
 % Cardset delle carte in gioco
-inizializza_cardset(Conoscenza, Cardset) :-
+inizializza_mazzo(Conoscenza, Cardset) :-
     scarti(Conoscenza, CarteNote),
     findall(Carta-CopieLibere,
             (
@@ -23,7 +25,7 @@ inizializza_cardset(Conoscenza, Cardset) :-
 %
 stato_possibile(C, stato(ManoGiocatori, M2, CartaRimossa), Peso) :-
     C = conoscenza(Giocatori, Informazioni, _),
-    inizializza_cardset(C, M0),
+    inizializza_mazzo(C, M0),
     rimuovi_da_cardset(CartaRimossa, M0, M1, P1),
     mano_giocatori(Giocatori, Informazioni, M1, ManoGiocatori, [], M2, P2),
     Peso is P1 * P2.
@@ -31,7 +33,7 @@ stato_possibile(C, stato(ManoGiocatori, M2, CartaRimossa), Peso) :-
 vincoli(G, C, Informazioni, CarteInMano, Cardset) :-
     carte_in_cardset(Cardset, PosizioneNelMazzo),
     % Anzichè usare ->, per favorire backtracking si usa una logica inversa.
-    % "Non voglio che ci sia una regola E non sia rispettata"
+    % "Non voglio che (ci sia una regola E non sia rispettata)"
     \+ (
            member(carta_non_posseduta(G, X), Informazioni),
            C = X
