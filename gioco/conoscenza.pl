@@ -1,12 +1,12 @@
 % Vista parziale dello stato di gioco
 %
 % conoscenza(
-%   Giocatori,        % lista dei nomi dei giocatori
+%   Giocatori,        % lista rotante dei nomi dei giocatori, indica anche l'ordine di gioco (gioca per prossimo chi è in testa)
 %   Informazioni,     % lista di informazioni riguardo alle carte in gioco
 %   Scarti            % lista di carte visibili a tutti
 % )
 
-:- module(conoscenza, [conoscenza_valida/1, nuova_conoscenza/2, giocatori/2, informazioni/2, scarti/2, stampa_conoscenza/1, fine_partita/1]).
+:- module(conoscenza, [conoscenza_valida/1, nuova_conoscenza/2, giocatori/2, informazioni/2, scarti/2, stampa_conoscenza/1, giocatore_corrente/2, prossimo_turno/2, fine_partita/1]).
 
 :- use_module(mazzo),
 use_module(cardset),
@@ -14,7 +14,6 @@ use_module('conoscenza/informazione').
 
 % TODO: Semplificazione 'conoscenza' per permettere generazione con backtracking.
 % Plausibilmente:
-% NumeroGiocatori (senza nomi, spostare il supporto ai nomi nel repl?).
 % Informazioni come dizionario, con chiavi per-giocatore.
 conoscenza_valida(conoscenza(Giocatori, Informazioni, Scarti)) :-
     length(Giocatori, L),
@@ -33,6 +32,11 @@ stampa_conoscenza(conoscenza(Giocatori, Informazioni, Scarti)) :-
     format("  Giocatori in partita: ~w~n", [Giocatori]),
     format("  Informazioni note: ~w~n", [Informazioni]),
     format("  Scarti: ~w~n", [Scarti]).
+
+giocatore_corrente(conoscenza([G |_], _, _), G).
+
+prossimo_turno(conoscenza([Corrente  |Resto], I, S), conoscenza(NuoviGiocatori, I, S)) :-
+    append(Resto, [Corrente], NuoviGiocatori).
 
 fine_partita(conoscenza([], _, _)).
 fine_partita(conoscenza([_], _, _)).

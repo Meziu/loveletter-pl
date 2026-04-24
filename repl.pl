@@ -11,7 +11,9 @@ inizia(Giocatori) :-
     finisci,
     nuova_conoscenza(Giocatori, C),
     conoscenza_valida(C),
-    asserta(storia([C])).
+    asserta(storia([C])),
+    Giocatori = [Primo  |_],
+    format("Inizio partita, turno di: ~a~n", [Primo]).
 
 finisci :-
     retractall(storia(_)).
@@ -23,19 +25,36 @@ storia :-
 registra(Evento) :-
     storia(S1),
     S1 = [CL  |_],
-    once(reg_evento(CL, Evento, CN)),
+    once(reg_evento(CL, Evento, C2)),
+    (
+        % Se si tratta di un evento di gioco del turno
+        functor(Evento, carta_giocata, _) ->
+            prossimo_turno(C2, CN),
+            giocatori(CN, [Prossimo  |_]),
+            format("Prossimo turno di: ~a~n", [Prossimo])
+    ;
+        CN = C2
+    ),
     S2 = [CN  |S1],
     retractall(storia(_)),
     asserta(storia(S2)).
 
-% Scorciatoia per registra(carta_giocata(...))
-rg(G, C) :-
+% Scorciatoia per registra(carta_giocata(GiocatoreAttuale, ...))
+rg(C) :-
+    corrente(Con),
+    giocatore_corrente(Con, G),
     registra(carta_giocata(G, C)).
-rg(G, C, A1) :-
+rg(C, A1) :-
+    corrente(Con),
+    giocatore_corrente(Con, G),
     registra(carta_giocata(G, C, A1)).
-rg(G, C, A1, A2) :-
+rg(C, A1, A2) :-
+    corrente(Con),
+    giocatore_corrente(Con, G),
     registra(carta_giocata(G, C, A1, A2)).
-rg(G, C, A1, A2, A3) :-
+rg(C, A1, A2, A3) :-
+    corrente(Con),
+    giocatore_corrente(Con, G),
     registra(carta_giocata(G, C, A1, A2, A3)).
 
 % Scorciatoia per registra(carta_vista(...))

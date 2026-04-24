@@ -44,6 +44,7 @@ test :-
     run_test(test_barone_poi_re_semplice),
     run_test(test_domestica_principe_spia),
     run_test(test_cancelliere_scala_posizioni),
+    run_test(test_prossimo_turno),
     run_test(test_fine_partita),
     run_test(test_repl),
     writeln('Fine test.').
@@ -542,7 +543,7 @@ test_domestica_principe_spia :-
     check(dps_spia,
           carta_presente(spia, Scarti)).
 
-test_fine_partita:-
+test_fine_partita :-
     cardset_pieno(S0),
     % 4 carte: una rimossa e una per la mano finale di ogni giocatore.
     rimuovi_da_cardset(contessa, S0, S1, _),
@@ -552,9 +553,17 @@ test_fine_partita:-
     C = conoscenza([pippo, pluto, paperino], [carta_non_posseduta(paperino, barone), carta_non_posseduta(pippo, contessa)], S4),
     check(fine_partita_a_3, fine_partita(C)).
 
-test_repl:-
+test_repl :-
     check(repl_pippo_guardia_pluto, (
               inizia([pippo, pluto, paperins]),
-              rg(pippo, guardia, pluto, re, true),
+              rg(guardia, pluto, re, true),
               p_mano(pippo)
                                     )).
+
+test_prossimo_turno :-
+    C0 = conoscenza([a, b, c], [], Scarti0),
+    cardset_vuoto(Scarti0),
+    prossimo_turno(C0, C),
+    C = conoscenza(Giocatori, _, _),
+    check(prossimo_turno_b, Giocatori = [b  |_]),
+    check(ultimo_turno_a, last(Giocatori, a)).

@@ -73,12 +73,14 @@ reg_evento(
     reg_evento(C1, carta_scartata(Giocatore, spia), CF).
 
 reg_evento(C1, carta_giocata(Giocatore, guardia, Bersaglio, CartaScelta, true), CF) :-
+    !,
     CartaScelta \== guardia,
     reg_evento(C1, carta_scartata(Giocatore, guardia), C2),
     reg_evento(C2, giocatore_eliminato(Bersaglio, CartaScelta), CF).
 
 reg_evento(C1, carta_giocata(Giocatore, guardia, Bersaglio, CartaScelta, false),
            conoscenza(Giocatori, [carta_non_posseduta(Bersaglio, CartaScelta)|I2], Scarti)) :-
+    !,
     CartaScelta \== guardia,
     reg_evento(C1, carta_scartata(Giocatore, guardia), conoscenza(Giocatori, I2, Scarti)).
 
@@ -87,12 +89,14 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, prete, _),
            CF) :-
+    !,
     reg_evento(C1, carta_scartata(Giocatore, prete), CF).
 % Conoscendone la carta
 reg_evento(
            C1,
            carta_giocata(Giocatore, prete, Bersaglio, CartaVista),
            CF) :-
+    !,
     reg_evento(C1, carta_giocata(Giocatore, prete, Bersaglio), C2),
     reg_evento(C2, carta_vista(Bersaglio, CartaVista), CF).
 
@@ -100,6 +104,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, barone, Bersaglio),
            CF) :-
+    !,
     reg_evento(C1, carta_scartata(Giocatore, barone), conoscenza(Giocatori, I2, Scarti)),
     CF = conoscenza(Giocatori, [carta_uguale(Giocatore, Bersaglio)  |I2], Scarti).
 
@@ -107,6 +112,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, barone, Bersaglio, Eliminato, CartaEliminata),
            CF) :-
+    !,
     valore(CartaEliminata, V),
     Giocatore \== Bersaglio,
     reg_evento(C1, carta_scartata(Giocatore, barone), C2),
@@ -134,6 +140,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, principe, Bersaglio, CartaScartata),
            CF) :-
+    !,
     reg_evento(C1, carta_scartata(Giocatore, principe), conoscenza(Giocatori, I2, Scarti)),
     (
         Giocatore \== Bersaglio ->
@@ -159,6 +166,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, cancelliere, CartaTenuta, CartaPenultima, CartaUltima),
            CF) :-
+    !,
     reg_evento(C1, carta_giocata(Giocatore, cancelliere), C2),
     reg_evento(C2, carta_vista(Giocatore, CartaTenuta), conoscenza(Giocatori, I3, Scarti)),
     CF = conoscenza(Giocatori, [carta_in_posizione(CartaPenultima, 2), carta_in_posizione(CartaUltima, 1)  |I3], Scarti).
@@ -188,6 +196,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, re, Bersaglio),
            conoscenza(Giocatori, NuoveInformazioni, Scarti)) :-
+    !,
     reg_evento(C1, carta_scartata(Giocatore, re), conoscenza(Giocatori, I2, Scarti)),
     I3 = [carta_non_posseduta(Giocatore, contessa)  |I2],
     % Scambio di giocatore nelle info
@@ -197,6 +206,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, re, Bersaglio, CartaPassata, CartaOttenuta),
            conoscenza(Giocatori4, I5, Scarti4)) :-
+    !,
     reg_evento(C1, carta_scartata(Giocatore, re), C2),
     reg_evento(C2, carta_vista(Giocatore, CartaPassata), C3),
     reg_evento(C3, carta_vista(Bersaglio, CartaOttenuta), conoscenza(Giocatori4, I4, Scarti4)),
@@ -213,6 +223,7 @@ reg_evento(
            C1,
            carta_giocata(Giocatore, principessa, AltraCarta),
            CF) :-
+    !,
     reg_evento(C1, carta_scartata(Giocatore, principessa), C2),
     reg_evento(C2, giocatore_autoeliminato(Giocatore, AltraCarta), CF).
 
