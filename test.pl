@@ -1,4 +1,5 @@
 :- use_module('gioco/conoscenza'),
+use_module('gioco/conoscenza/evento'),
 use_module('gioco/cardset'),
 use_module(statistica),
 consult(repl),
@@ -44,6 +45,7 @@ test :-
     run_test(test_barone_poi_re_semplice),
     run_test(test_domestica_principe_spia),
     run_test(test_cancelliere_scala_posizioni),
+    run_test(test_protezione_con_peeking),
     run_test(test_prossimo_turno),
     run_test(test_fine_partita),
     run_test(test_repl),
@@ -555,7 +557,7 @@ test_fine_partita :-
 
 test_repl :-
     check(repl_pippo_guardia_pluto, (
-              inizia([pippo, pluto, paperins]),
+              inizia(pippo, pluto, paperins),
               rg(guardia, pluto, re, true),
               p_mano(pippo)
                                     )).
@@ -567,3 +569,14 @@ test_prossimo_turno :-
     C = conoscenza(Giocatori, _, _),
     check(prossimo_turno_b, Giocatori = [b  |_]),
     check(ultimo_turno_a, last(Giocatori, a)).
+
+test_protezione_con_peeking :-
+    C0 = conoscenza([a, b, c], [], Scarti0),
+    cardset_vuoto(Scarti0),
+    reg_eventi(C0,
+               [carta_giocata(a, domestica),
+                carta_vista(a, contessa)],
+               CF),
+    informazioni(CF, Info),
+    check(a_ancora_protetta, member(protetto(a), Info)),
+    check(a_carta_posseduta, member(carta_posseduta(a, contessa), Info)).

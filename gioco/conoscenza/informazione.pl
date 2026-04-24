@@ -1,4 +1,4 @@
-:- module(informazione, [informazione/1, lista_informazioni/1, riguarda/3, riguarda_carta/2, riguarda_giocatore/2, scambia_informazioni/4]).
+:- module(informazione, [informazione/1, lista_informazioni/1, riguarda_giocatore_e_carta/3, riguarda_carta/2, riguarda_giocatore/2, riguarda_visione/2, scambia_informazioni/4]).
 
 :- use_module('../mazzo').
 
@@ -9,11 +9,13 @@
 % carta_superiore(Giocatore, Valore)
 % carta_uguale(Giocatore, Giocatore)
 % carta_in_posizione(Carta, Posizione) - posizione dal fondo del mazzo
+% protetto(Giocatore) - giocatore protetto per un turno dall'effetto di domestica
 informazione(carta_posseduta(_, _)).
 informazione(carta_non_posseduta(_, _)).
 informazione(carta_superiore(_, _)).
 informazione(carta_uguale(_, _)).
 informazione(carta_in_posizione(_, _)).
+informazione(protetto(_)).
 
 % Si tratta di una lista di informazioni
 lista_informazioni(L) :-
@@ -35,14 +37,22 @@ riguarda_giocatore(G, carta_non_posseduta(G, _)).
 riguarda_giocatore(G, carta_superiore(G, _)).
 riguarda_giocatore(G, carta_uguale(G, _)).
 riguarda_giocatore(G, carta_uguale(_, G)).
+riguarda_giocatore(G, protetto(G)).
 
 riguarda_giocatore_senza_uguale(G, I) :-
     I \= carta_uguale(_, _),
     riguarda_giocatore(G, I).
 
-riguarda(Giocatore, Carta, I) :-
+riguarda_giocatore_e_carta(Giocatore, Carta, I) :-
     riguarda_carta(Carta, I),
     riguarda_giocatore(Giocatore, I).
+
+% Caso particolare per la visione della carta di un giocatore.
+% Voglio permettere l'evento carta_vista anche durante l'effetto di domestica,
+% così da poter rappresetnare anche il peeking delle carte altrui.
+riguarda_visione(Giocatore, I) :-
+  I \= protetto(Giocatore),
+  riguarda_giocatore(Giocatore, I).
 
 scambia_giocatore(G1, G2, I, I2) :-
     \+ riguarda_giocatore(G1, I),

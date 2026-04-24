@@ -1,5 +1,7 @@
 % Stateful REPL con semplici comandi per poter gestire una partita in tempo reale.
 
+:- module(repl, [inizia/1, inizia/2, inizia/3, inizia/4, inizia/5, inizia/6, inizia/1, finisci/0, storia/0, annulla/0, corrente/0, corrente/1, registra/1, rg/1, rg/2, rg/3, rg/4, rv/2, p_mano/1]).
+
 :- use_module('gioco/conoscenza'),
 use_module('gioco/conoscenza/evento'),
 use_module('gioco/conoscenza/stato'),
@@ -7,13 +9,26 @@ use_module(statistica).
 
 :- dynamic storia/1.
 
+% Con lista di giocatori
 inizia(Giocatori) :-
-    finisci,
     nuova_conoscenza(Giocatori, C),
     conoscenza_valida(C),
+    finisci,
     asserta(storia([C])),
     Giocatori = [Primo  |_],
     format("Inizio partita, turno di: ~a~n", [Primo]).
+
+% Con N giocatori
+inizia(G1, G2) :-
+  inizia([G1, G2]).
+inizia(G1, G2, G3) :-
+  inizia([G1, G2, G3]).
+inizia(G1, G2, G3, G4) :-
+  inizia([G1, G2, G3, G4]).
+inizia(G1, G2, G3, G4, G5) :-
+  inizia([G1, G2, G3, G4, G5]).
+inizia(G1, G2, G3, G4, G5, G6) :-
+  inizia([G1, G2, G3, G4, G5, G6]).
 
 finisci :-
     retractall(storia(_)).

@@ -27,7 +27,7 @@ reg_evento(
            conoscenza(Giocatori, Informazioni, Scarti),
            carta_scartata(Giocatore, Carta),
            conoscenza(Giocatori, NuoveInformazioni, NuoviScarti)) :-
-    exclude(riguarda(Giocatore, Carta), Informazioni, NuoveInformazioni),
+    exclude(riguarda_giocatore_e_carta(Giocatore, Carta), Informazioni, NuoveInformazioni),
     aggiungi_a_cardset(Carta, Scarti, NuoviScarti, _).
 % Carta scartata nel turno avversario (forzatamente)
 reg_evento(
@@ -35,6 +35,7 @@ reg_evento(
            carta_tolta(Giocatore, Carta),
            conoscenza(Giocatori, NuoveInformazioni, NuoviScarti)) :-
     risolvi_uguaglianze(Giocatore, Carta, Info1, Info2),
+    % Non consideriamo la protezione, i vincoli di validità sono controllati altrove
     exclude(riguarda_giocatore(Giocatore), Info2, NuoveInformazioni),
     aggiungi_a_cardset(Carta, Scarti, NuoviScarti, _).
 
@@ -43,7 +44,7 @@ reg_evento(
            carta_vista(Giocatore, Carta),
            conoscenza(Giocatori, NuoveInformazioni, Scarti)) :-
     risolvi_uguaglianze(Giocatore, Carta, Info1, Info2),
-    exclude(riguarda_giocatore(Giocatore), Info2, Info3),
+    exclude(riguarda_visione(Giocatore), Info2, Info3),
     NuoveInformazioni = [carta_posseduta(Giocatore, Carta)  |Info3].
 
 % Giocatore eliminato in un turno diverso dal proprio, quindi aveva 1 carta in mano.
@@ -132,9 +133,10 @@ reg_evento(
 reg_evento(
            C1,
            carta_giocata(Giocatore, domestica),
-           CF) :-
+           conoscenza(Giocatori2, Info3, Scarti2)) :-
     !,
-    reg_evento(C1, carta_scartata(Giocatore, domestica), CF).
+    reg_evento(C1, carta_scartata(Giocatore, domestica), conoscenza(Giocatori2, Info2, Scarti2)),
+    Info3 = [protetto(Giocatore)  |Info2].
 
 reg_evento(
            C1,
