@@ -7,11 +7,16 @@ use_module('../../mazzo'),
 use_module('../../cardset').
 
 turno_possibile(Conoscenza, Evento) :-
-    % TODO: filtrare casi di protezione etc di cui lo "stato" non si preoccupa
     giocatore_corrente(Conoscenza, Giocatore),
+    controllo_protezione(Conoscenza, Evento),
     % TODO: è più efficiente valutare prima lo stato o le giocate?
     stato_possibile(Conoscenza, Stato),
     giocata_possibile_stato(Giocatore, Stato, Evento).
+
+controllo_protezione(Conoscenza, Evento) :-
+    informazioni(Conoscenza, Informazioni),
+    % Se i giocatori avversari sono protetti, allora non si possono bersagliare.
+    forall(member(protetto(G), Informazioni), \+ bersaglio(G, Evento)).
 
 giocata_possibile_stato(Giocatore, Stato, Evento) :-
     giocatore(Giocatore, Evento),

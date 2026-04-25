@@ -1,4 +1,4 @@
-:- module(evento, [evento/1, giocatore/2, usa_carta/2, bersaglio/2, eliminato/3, conosciuto/1]).
+:- module(evento, [evento/1, giocatore/2, usa_carta/2, bersaglio/2, eliminato/3, incerto/1]).
 
 :- reexport(['evento/registrazione', 'evento/possibile']).
 
@@ -68,6 +68,7 @@ usa_carta(Carta, carta_giocata(_, Carta)).
 
 % Eventi con bersaglio
 bersaglio(Bersaglio, carta_giocata(_, guardia, Bersaglio, _, _)).
+bersaglio(Bersaglio, carta_giocata(_, prete, Bersaglio)).
 bersaglio(Bersaglio, carta_giocata(_, prete, Bersaglio, _)).
 bersaglio(Bersaglio, carta_giocata(_, barone, Bersaglio)).
 bersaglio(Bersaglio, carta_giocata(_, barone, Bersaglio, _, _)).
@@ -76,24 +77,12 @@ bersaglio(Bersaglio, carta_giocata(_, re, Bersaglio, _, _)).
 
 % Eventi con eliminazione di un giocatore.
 % Ogni eliminazione implica anche che una carta esca dal gioco.
-eliminato(Eliminato, CartaEliminata, carta_giocata(_, guardia, Eliminato, CartaEliminata, true)).  % solo con true si elimina un giocatore
+eliminato(Eliminato, CartaEliminata, carta_giocata(_, guardia, Eliminato, CartaEliminata, true)).   % solo con true si elimina un giocatore
 eliminato(Eliminato, CartaEliminata, carta_giocata(_, barone, _, Eliminato, CartaEliminata)).
-eliminato(Eliminato, principessa, carta_giocata(_, principe, Eliminato, principessa)).  % implica eliminazione solo se si scarta la principessa
+eliminato(Eliminato, principessa, carta_giocata(_, principe, Eliminato, principessa)).   % implica eliminazione solo se si scarta la principessa
 eliminato(Eliminato, CartaEliminata, carta_giocata(Eliminato, principessa, CartaEliminata)).
 
-% Eventi con conoscenza totale, dal punto di vista dell'agente conoscitivo
-conosciuto(carta_giocata(_, spia)).
-conosciuto(carta_giocata(_, guardia, _, _, true)).
-conosciuto(carta_giocata(_, guardia, _, _, false)).
-conosciuto(carta_giocata(_, prete, _, _)).
-% TODO: caso particolare. Il fatto che io veda o meno le due carte ha rilevanza?
-% So del pareggio sia che lo gioco io che altrimenti. Le carte comparate non dovrebbero essere importanti.
-conosciuto(carta_giocata(_, barone, _)).
-conosciuto(carta_giocata(_, barone, _, _, _)).
-conosciuto(carta_giocata(_, domestica)).
-conosciuto(carta_giocata(_, principe, _, _)).
-conosciuto(carta_giocata(_, cancelliere, _, _, _)).
-conosciuto(carta_giocata(_, re, _, _, _)).  % si ha conoscenza totale anche in quanto bersaglio
-conosciuto(carta_giocata(_, contessa)).
-conosciuto(carta_giocata(_, principessa, _)).
-conosciuto(carta_giocata(_, _)).
+% Eventi senza conoscenza totale, dal punto di vista dell'agente conoscitivo
+incerto(carta_giocata(_, prete, _)).
+incerto(carta_giocata(_, cancelliere)).
+incerto(carta_giocata(_, re, _)).
