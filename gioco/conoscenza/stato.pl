@@ -1,4 +1,4 @@
-:- module(stato, [stato_possibile/3]).
+:- module(stato, [stato_possibile/3, mani/2, mano/3, mazzo/2, carta_rimossa/2]).
 
 :- use_module('../mazzo'),
 use_module('../cardset').
@@ -12,14 +12,19 @@ inizializza_mazzo(Conoscenza, Cardset) :-
 %
 % Struttura di uno stato:
 % stato([Giocatore-CartaInMano, ...], [CartaNelMazzo-NumeroDiCopie, ...], CartaRimossa)
-%
-%
 stato_possibile(C, stato(ManoGiocatori, M2, CartaRimossa), Peso) :-
     C = conoscenza(Giocatori, Informazioni, _),
     inizializza_mazzo(C, M0),
     rimuovi_da_cardset(CartaRimossa, M0, M1, P1),
     mano_giocatori(Giocatori, Informazioni, M1, ManoGiocatori, [], M2, P2),
     Peso is P1 * P2.
+
+mani(ManoGiocatori, stato(ManoGiocatori, _, _)).
+mano(Giocatore, Mano, S) :-
+    mani(ManoGiocatori, S),
+    member(Giocatore-Mano, ManoGiocatori).
+mazzo(Mazzo, stato(_, Mazzo, _)).
+carta_rimossa(CartaRimossa, stato(_, _, CartaRimossa)).
 
 vincoli(G, C, Informazioni, CarteInMano, Cardset) :-
     carte_in_cardset(Cardset, PosizioneNelMazzo),
