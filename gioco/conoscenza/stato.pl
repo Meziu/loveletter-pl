@@ -1,6 +1,7 @@
 :- module(stato, [stato_possibile/3, mani/2, mano/3, mazzo/2, carta_rimossa/2]).
 
 :- use_module('../mazzo'),
+use_module(informazione),
 use_module('../cardset').
 
 % Cardset delle carte in gioco
@@ -27,7 +28,6 @@ mazzo(Mazzo, stato(_, Mazzo, _)).
 carta_rimossa(CartaRimossa, stato(_, _, CartaRimossa)).
 
 vincoli(G, C, Informazioni, CarteInMano, Cardset) :-
-    carte_in_cardset(Cardset, PosizioneNelMazzo),
     % Anzichè usare ->, per favorire backtracking si usa una logica inversa.
     % "Non voglio che (ci sia una regola E non sia rispettata)"
     \+ (
@@ -47,24 +47,7 @@ vincoli(G, C, Informazioni, CarteInMano, Cardset) :-
            member(Altro-CAltro, CarteInMano),
            dif(C, CAltro)
        ),
-    % Controllo di pesca alla posizione esatta
-    \+ (
-           member(carta_in_posizione(CartaPos, Pos), Informazioni),
-           Pos = PosizioneNelMazzo,
-           dif(C, CartaPos)
-       ),
-    % Controllo che non si usino copie extra ad una posizione quando si sa che devono essere in un altra.
-    \+ (
-           aggregate_all(count,
-                         (
-                             member(carta_in_posizione(C, PosVincolo), Informazioni),
-                             PosVincolo < PosizioneNelMazzo
-                         ),
-                         N),
-           N > 0,
-           copie_carta(C, Cardset, Copie),
-           Copie =< N
-       ).
+    controllo_posizione(C, Informazioni, Cardset).
 
 % Assegna ad ogni giocatore una carta, come nello stato solito di una partita.
 mano_giocatori([], _, M, [], _, M, 1).

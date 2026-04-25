@@ -19,13 +19,13 @@ controllo_protezione(Conoscenza, Evento) :-
     forall(member(protetto(G), Informazioni), \+ bersaglio(G, Evento)).
 % TODO: aggiungere clausola di sblocco a carte con bersaglio quando tutti i player sono protetti
 
-giocata_possibile_stato(Giocatore, Stato, Evento) :-
+giocata_possibile_stato(Giocatore, Stato, Informazioni, Evento) :-
     giocatore(Giocatore, Evento),
     mano(Giocatore, CartaInMano, Stato),
     mani(CarteGiocatori, Stato),
     mazzo(Mazzo, Stato),
     carta_rimossa(CartaRimossa, Stato),
-    rimuovi_da_cardset(CartaPescata, Mazzo, Mazzo2, PesoCartaPescata),
+    pesca_informata_cardset(CartaPescata, Informazioni, Mazzo, Mazzo2, PesoCartaPescata),
     % si gioca la carta già in mano o quella pescata
     (
         CartaGiocata = CartaInMano,
@@ -37,23 +37,23 @@ giocata_possibile_stato(Giocatore, Stato, Evento) :-
     % TODO: RISOLVERE IL CASO IN CUI SI GIOCA LA CARTA CHE ERA GIÀ IN MANO E LA MANO DEL GIOCATORE DEVE DIVENTARE LA CARTA PESCATA
     Stato2 = stato(CarteGiocatori, Mazzo2, CartaRimossa),
     usa_carta(CartaGiocata, Evento),
-    gioco_carta(Giocatore, Stato2, CartaGiocata, Evento).
+    gioco_carta(Giocatore, Informazioni, Stato2, CartaGiocata, Evento).
 % TODO: come gestire il caso in cui il giocante o il bersaglio è conoscitivo?
 
-gioco_carta(G, _, spia, carta_giocata(G, spia)).
-gioco_carta(G, S, guardia, carta_giocata(G, guardia, Bersaglio, CartaScelta, true)) :-
+gioco_carta(G, _, _, spia, carta_giocata(G, spia)).
+gioco_carta(G, _, S, guardia, carta_giocata(G, guardia, Bersaglio, CartaScelta, true)) :-
     dif(CartaScelta, guardia),
     mano(Bersaglio, CartaScelta, S).
-gioco_carta(G, S, guardia, carta_giocata(G, guardia, Bersaglio, CartaScelta, false)) :-
+gioco_carta(G, _, S, guardia, carta_giocata(G, guardia, Bersaglio, CartaScelta, false)) :-
     dif(CartaScelta, guardia),
     \+ mano(Bersaglio, CartaScelta, S).
-gioco_carta(G, S, prete, carta_giocata(G, prete, Bersaglio, CartaVista)) :-
+gioco_carta(G, _, S, prete, carta_giocata(G, prete, Bersaglio, CartaVista)) :-
     mano(Bersaglio, CartaVista, S).
-gioco_carta(G, S, barone, carta_giocata(G, barone, Bersaglio)) :-
+gioco_carta(G, _, S, barone, carta_giocata(G, barone, Bersaglio)) :-
     mano(G, CartaG, S),
     mano(Bersaglio, CartaB, S),
     \+ dif(CartaG, CartaB).
-gioco_carta(G, S, barone, carta_giocata(G, barone, Bersaglio, Eliminato, CartaEliminata)) :-
+gioco_carta(G, _, S, barone, carta_giocata(G, barone, Bersaglio, Eliminato, CartaEliminata)) :-
     mano(G, CartaG, S),
     mano(Bersaglio, CartaB, S),
     valore(CartaG, VG),
@@ -67,14 +67,14 @@ gioco_carta(G, S, barone, carta_giocata(G, barone, Bersaglio, Eliminato, CartaEl
         Eliminato = G,
         CartaEliminata = CartaG
     ).
-gioco_carta(G, _, domestica, carta_giocata(G, domestica)).
-gioco_carta(G, S, principe, carta_giocata(G, principe, Bersaglio, CartaScartata)) :-
+gioco_carta(G, _, _, domestica, carta_giocata(G, domestica)).
+gioco_carta(G, _, S, principe, carta_giocata(G, principe, Bersaglio, CartaScartata)) :-
     mano(Bersaglio, CartaScartata, S).
-gioco_carta(G, S, cancelliere, carta_giocata(G, cancelliere, CO1, CO2, CO3)) :-
+gioco_carta(G, I, S, cancelliere, carta_giocata(G, cancelliere, CO1, CO2, CO3)) :-
     mano(G, C1, S),
     mazzo(M1, S),
-    rimuovi_da_cardset(C2, M1, M2, _), % TODO: RESTITUIRE IL PESO SOMEHOW
-    rimuovi_da_cardset(C3, M2, _M3, _), % TODO: ESISTE IL VINCOLO DI PESCA SULLA POSIZIONE A CAUSA DI UN ALTRO CANCELLIERE, AAGHHH
+    pesca_informata_cardset(C2, I, M1, M2, _), % TODO: RESTITUIRE IL PESO SOMEHOW
+    pesca_informata_cardset(C3, I, M2, _M3, _),
     permutation([C1, C2, C3], [CO1, CO2, CO3]).
 gioco_carta(G, S, re, carta_giocata(G, re, Bersaglio, CartaPassata, CartaOttenuta)) :-
     mano(G, CartaPassata, S),
