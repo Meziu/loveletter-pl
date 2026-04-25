@@ -75,14 +75,12 @@ reg_evento(
 
 reg_evento(C1, carta_giocata(Giocatore, guardia, Bersaglio, CartaScelta, true), CF) :-
     !,
-    CartaScelta \== guardia,
     reg_evento(C1, carta_scartata(Giocatore, guardia), C2),
     reg_evento(C2, giocatore_eliminato(Bersaglio, CartaScelta), CF).
 
 reg_evento(C1, carta_giocata(Giocatore, guardia, Bersaglio, CartaScelta, false),
            conoscenza(Giocatori, [carta_non_posseduta(Bersaglio, CartaScelta)|I2], Scarti)) :-
     !,
-    CartaScelta \== guardia,
     reg_evento(C1, carta_scartata(Giocatore, guardia), conoscenza(Giocatori, I2, Scarti)).
 
 % Senza conoscerne la carta
@@ -115,14 +113,14 @@ reg_evento(
            CF) :-
     !,
     valore(CartaEliminata, V),
-    Giocatore \== Bersaglio,
+    dif(Giocatore, Bersaglio),
     reg_evento(C1, carta_scartata(Giocatore, barone), C2),
     (
-        Giocatore \= Eliminato ->
+        dif(Giocatore, Eliminato) ->
             Vincitore = Giocatore,
             reg_evento(C2, giocatore_eliminato(Bersaglio, CartaEliminata), conoscenza(Giocatori, I3, Scarti))
     ;
-        Bersaglio \= Eliminato ->
+        dif(Bersaglio, Eliminato) ->
             Vincitore = Bersaglio,
             reg_evento(C2, giocatore_autoeliminato(Giocatore, CartaEliminata), conoscenza(Giocatori, I3, Scarti))
     ;
@@ -145,7 +143,7 @@ reg_evento(
     !,
     reg_evento(C1, carta_scartata(Giocatore, principe), conoscenza(Giocatori, I2, Scarti)),
     (
-        Giocatore \== Bersaglio ->
+        dif(Giocatore, Bersaglio) ->
             C3 = conoscenza(Giocatori, [carta_non_posseduta(Giocatore, contessa)  |I2], Scarti),
             % Principessa è l'unica carta con un effetto quando viene scartata.
             (

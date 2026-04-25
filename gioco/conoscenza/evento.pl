@@ -1,4 +1,4 @@
-:- module(evento, [evento/1, giocatore/2, usa_carta/2, bersaglio/2, eliminato/3, incerto/1]).
+:- module(evento, [evento/1, giocatore/2, usa_carta/2, bersaglio/2, eliminato/3, incerto/3]).
 
 :- reexport(['evento/registrazione', 'evento/possibile']).
 
@@ -11,8 +11,10 @@ evento(giocatore_autoeliminato(_, _)).
 
 % Eventi di gioco
 evento(carta_giocata(_, spia)).
-evento(carta_giocata(_, guardia, _, _, true)).
-evento(carta_giocata(_, guardia, _, _, false)).
+evento(carta_giocata(_, guardia, _, CartaScelta, true)) :-
+    dif(CartaScelta, guardia).
+evento(carta_giocata(_, guardia, _, CartaScelta, false)) :-
+    dif(CartaScelta, guardia).
 % Senza conoscerne la carta
 evento(carta_giocata(_, prete, _)).
 % Conoscendone la carta
@@ -77,12 +79,18 @@ bersaglio(Bersaglio, carta_giocata(_, re, Bersaglio, _, _)).
 
 % Eventi con eliminazione di un giocatore.
 % Ogni eliminazione implica anche che una carta esca dal gioco.
-eliminato(Eliminato, CartaEliminata, carta_giocata(_, guardia, Eliminato, CartaEliminata, true)).   % solo con true si elimina un giocatore
+eliminato(Eliminato, CartaEliminata, carta_giocata(_, guardia, Eliminato, CartaEliminata, true)).    % solo con true si elimina un giocatore
 eliminato(Eliminato, CartaEliminata, carta_giocata(_, barone, _, Eliminato, CartaEliminata)).
-eliminato(Eliminato, principessa, carta_giocata(_, principe, Eliminato, principessa)).   % implica eliminazione solo se si scarta la principessa
+eliminato(Eliminato, principessa, carta_giocata(_, principe, Eliminato, principessa)).    % implica eliminazione solo se si scarta la principessa
 eliminato(Eliminato, CartaEliminata, carta_giocata(Eliminato, principessa, CartaEliminata)).
 
-% Eventi senza conoscenza totale, dal punto di vista dell'agente conoscitivo
-incerto(carta_giocata(_, prete, _)).
-incerto(carta_giocata(_, cancelliere)).
-incerto(carta_giocata(_, re, _)).
+% Eventi senza conoscenza totale, dal punto di vista dell'osservatore.
+% Propone anche la versione parziale dell'evento
+incerto(Osservatore, carta_giocata(Giocatore, prete, Bersaglio, _), carta_giocata(Giocatore, prete, Bersaglio)) :-
+    dif(Osservatore, Giocatore),
+    dif(Osservatore, Bersaglio).
+incerto(Osservatore, carta_giocata(Giocatore, cancelliere, _, _, _), carta_giocata(Giocatore, cancelliere)) :-
+    dif(Osservatore, Giocatore).
+incerto(Osservatore, carta_giocata(Giocatore, re, Bersaglio, _, _), carta_giocata(Giocatore, re, Bersaglio)) :-
+    dif(Osservatore, Giocatore),
+    dif(Osservatore, Bersaglio).

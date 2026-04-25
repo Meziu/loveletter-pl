@@ -25,7 +25,7 @@ riguarda_carta(C, carta_posseduta(_, C)).
 % "riguarda_carta" indica se un informazione è compatibile con una determinata carta.
 % Pertanto, il non-possedimento (controintuitivamente) riguarda "tutte le carte che non sono la non-posseduta".
 riguarda_carta(C1, carta_non_posseduta(_, C2)) :-
-    C1 \= C2.
+    dif(C1, C2).
 riguarda_carta(C, carta_superiore(_, V)) :-
     valore(C, Vc),
     Vc >= V.
@@ -40,7 +40,7 @@ riguarda_giocatore(G, carta_uguale(_, G)).
 riguarda_giocatore(G, protetto(G)).
 
 riguarda_giocatore_senza_uguale(G, I) :-
-    I \= carta_uguale(_, _),
+    dif(I, carta_uguale(_, _)),
     riguarda_giocatore(G, I).
 
 riguarda_giocatore_e_carta(Giocatore, Carta, I) :-
@@ -51,7 +51,7 @@ riguarda_giocatore_e_carta(Giocatore, Carta, I) :-
 % Voglio permettere l'evento carta_vista anche durante l'effetto di domestica,
 % così da poter rappresetnare anche il peeking delle carte altrui.
 riguarda_visione(Giocatore, I) :-
-    I \= protetto(Giocatore),
+    dif(I, protetto(Giocatore)),
     riguarda_giocatore(Giocatore, I).
 
 scambia_giocatore(G1, G2, I, I2) :-
@@ -64,16 +64,16 @@ scambia_giocatore(G1, G2, carta_superiore(G1, V), carta_superiore(G2, V)).
 % caso in cui si scambia tra due giocatori legati
 scambia_giocatore(G1, G2, carta_uguale(G1, G2), carta_uguale(G1, G2)).
 scambia_giocatore(G1, G2, carta_uguale(G1, Gd), carta_uguale(G2, Gd)) :-
-    G2 \= Gd.
+    dif(G2, Gd).
 scambia_giocatore(G1, G2, carta_uguale(Gd, G1), carta_uguale(Gd, G2)) :-
-    G2 \= Gd.
+    dif(G2, Gd).
 % info non legata a nessuno dei due giocatori: passa invariata
 scambia_giocatore(G1, G2, I, I) :-
     \+ riguarda_giocatore(G1, I),
     \+ riguarda_giocatore(G2, I).
 
 scambia_informazioni(G1, G2, InformazioniDaCambiare, NuoveInformazioni) :-
-    G1 \== G2,
+    dif(G1, G2),
     findall(I2,
             (
                 member(I1, InformazioniDaCambiare),
