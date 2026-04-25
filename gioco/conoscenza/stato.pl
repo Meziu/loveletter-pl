@@ -6,15 +6,7 @@ use_module('../cardset').
 % Cardset delle carte in gioco
 inizializza_mazzo(Conoscenza, Cardset) :-
     scarti(Conoscenza, Scarti),
-    findall(Carta-CopieLibere,
-            (
-                carta(Carta),
-                numero_copie(Carta, TotCopie),
-                copie_carta(Carta, Scarti, Usate),
-                CopieLibere is TotCopie - Usate,
-                CopieLibere >= 0
-            ),
-            Cardset).
+    cardset_complemento(Scarti, Cardset).
 
 % Stato di gioco possibile data una conoscenza. Non deterministico.
 %

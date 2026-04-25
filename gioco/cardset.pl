@@ -1,4 +1,4 @@
-:- module(cardset, [cardset/1, cardset_pieno/1, cardset_vuoto/1, rimuovi_da_cardset/4, aggiungi_a_cardset/4, carta_presente/2, copie_carta/3, carte_in_cardset/2]).
+:- module(cardset, [cardset/1, cardset_pieno/1, cardset_vuoto/1, cardset_complemento/2, rimuovi_da_cardset/4, aggiungi_a_cardset/4, carta_presente/2, copie_carta/3, carte_in_cardset/2]).
 
 :- use_module(mazzo).
 
@@ -21,6 +21,13 @@ cardset_vuoto(Cardset) :-
     findall(Carta, carta(Carta), Carte),
     maplist(no_carta, Carte, Cardset).
 no_carta(Carta, Carta-0).
+
+cardset_complemento(Cardset, Complemento) :-
+    maplist(complementare, Cardset, Complemento).
+complementare(Carta-N1, Carta-N2) :-
+    numero_copie(Carta, C),
+    between(0, C, N1),
+    N2 is C - N1.
 
 % Rimuove una carta dal cardset.
 % Restituisce il numero di copie presenti prima della rimozione.

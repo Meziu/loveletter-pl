@@ -1,3 +1,3 @@
 :- module(evento, []).
 
-:- reexport(['evento/registrazione', 'evento/valido']).
+:- reexport(['evento/registrazione', 'evento/possibile']).

@@ -51,8 +51,8 @@ riguarda_giocatore_e_carta(Giocatore, Carta, I) :-
 % Voglio permettere l'evento carta_vista anche durante l'effetto di domestica,
 % così da poter rappresetnare anche il peeking delle carte altrui.
 riguarda_visione(Giocatore, I) :-
-  I \= protetto(Giocatore),
-  riguarda_giocatore(Giocatore, I).
+    I \= protetto(Giocatore),
+    riguarda_giocatore(Giocatore, I).
 
 scambia_giocatore(G1, G2, I, I2) :-
     \+ riguarda_giocatore(G1, I),

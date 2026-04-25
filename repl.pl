@@ -20,15 +20,15 @@ inizia(Giocatori) :-
 
 % Con N giocatori
 inizia(G1, G2) :-
-  inizia([G1, G2]).
+    inizia([G1, G2]).
 inizia(G1, G2, G3) :-
-  inizia([G1, G2, G3]).
+    inizia([G1, G2, G3]).
 inizia(G1, G2, G3, G4) :-
-  inizia([G1, G2, G3, G4]).
+    inizia([G1, G2, G3, G4]).
 inizia(G1, G2, G3, G4, G5) :-
-  inizia([G1, G2, G3, G4, G5]).
+    inizia([G1, G2, G3, G4, G5]).
 inizia(G1, G2, G3, G4, G5, G6) :-
-  inizia([G1, G2, G3, G4, G5, G6]).
+    inizia([G1, G2, G3, G4, G5, G6]).
 
 finisci :-
     retractall(storia(_)).

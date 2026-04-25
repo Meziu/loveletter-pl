@@ -580,3 +580,9 @@ test_protezione_con_peeking :-
     informazioni(CF, Info),
     check(a_ancora_protetta, member(protetto(a), Info)),
     check(a_carta_posseduta, member(carta_posseduta(a, contessa), Info)).
+
+test_cardset_complemento :-
+    cardset_vuoto(CV),
+    cardset_pieno(CP),
+    check(complemento_pieno, cardset_complemento(CV, CP)),
+    check(complemento_vuoto, cardset_complemento(CP, CV)).
