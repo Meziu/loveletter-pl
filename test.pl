@@ -47,6 +47,7 @@ test :-
     run_test(test_cancelliere_scala_posizioni),
     run_test(test_protezione_con_peeking),
     run_test(test_prossimo_turno),
+    run_test(test_turni_possibili),
     run_test(test_fine_partita),
     run_test(test_repl),
     writeln('Fine test.').
@@ -587,3 +588,14 @@ test_cardset_complemento :-
     cardset_pieno(CP),
     check(complemento_pieno, cardset_complemento(CV, CP)),
     check(complemento_vuoto, cardset_complemento(CP, CV)).
+
+test_turni_possibili :-
+  inizia(pippo, pluto, paperino),
+  rg(contessa),
+  rg(prete, pippo),
+  rv(paperino, guardia),
+  findall(T-P, (corrente(C), turno_possibile(C, T, P), usa_carta(principe, T)), LT),
+  % visto che la lista è ordinata per peso, l'auto principe deve essere sempre la possibilità più sicura
+  check(auto_principe_assicurato, LT = [carta_giocata(paperino, principe, paperino, guardia)-_Peso  |_]),
+  check(no_evento_senza_bersaglio, \+ member(carta_giocata(paperino, principe), LT)),
+  finisci.
