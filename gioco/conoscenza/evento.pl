@@ -1,6 +1,7 @@
 :- module(evento, [evento/1, giocatore/2, usa_carta/2, bersaglio/2, eliminato/3, incerto/3]).
-
 :- reexport(['evento/registrazione', 'evento/possibile']).
+
+:- use_module('../mazzo').
 
 % Eventi transitori
 evento(carta_scartata(_, _)).
@@ -52,21 +53,17 @@ giocatore(Giocatore, carta_giocata(Giocatore, principessa, _)).
 giocatore(Giocatore, carta_giocata(Giocatore, _)).
 
 % Carta utilizzata nella giocata
-usa_carta(spia, carta_giocata(_, spia)).
+usa_carta(Carta, carta_giocata(_, Carta)).
 usa_carta(guardia, carta_giocata(_, guardia, _, _, _)).
 usa_carta(prete, carta_giocata(_, prete, _)).
 usa_carta(prete, carta_giocata(_, prete, _, _)).
 usa_carta(barone, carta_giocata(_, barone, _)).
 usa_carta(barone, carta_giocata(_, barone, _, _, _)).
-usa_carta(domestica, carta_giocata(_, domestica)).
 usa_carta(principe, carta_giocata(_, principe, _, _)).
 usa_carta(cancelliere, carta_giocata(_, cancelliere, _, _, _)).
-usa_carta(cancelliere, carta_giocata(_, cancelliere)).
 usa_carta(re, carta_giocata(_, re, _)).
 usa_carta(re, carta_giocata(_, re, _, _, _)).
-usa_carta(contessa, carta_giocata(_, contessa)).
 usa_carta(principessa, carta_giocata(_, principessa, _)).
-usa_carta(Carta, carta_giocata(_, Carta)).
 
 % Eventi con bersaglio
 bersaglio(Bersaglio, carta_giocata(_, guardia, Bersaglio, _, _)).

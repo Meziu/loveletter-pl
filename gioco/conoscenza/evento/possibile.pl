@@ -11,16 +11,16 @@ turno_possibile(Conoscenza, Evento, PesoTotale) :-
     informazioni(Conoscenza, Informazioni),
     giocatori(Conoscenza, Giocatori),
     findall(G, member(protetto(G), Informazioni), Protetti),
-    aggregate_all(bag(E-P),
-                  (   stato_possibile(Conoscenza, Stato, PS),
-                      giocata_possibile_stato(Giocatore, Stato, Informazioni, E, PG),
-                      controllo_protezione(Giocatore, Giocatori, Protetti, E),
-                      P is PS * PG
-                  ), Paia),
-    msort(Paia, PaiaOrdinati),
-    group_pairs_by_key(PaiaOrdinati, Gruppi),
-    member(Evento-Pesi, Gruppi),
-    sumlist(Pesi, PesoTotale).
+    aggregate(
+            sum(P),
+            Stato^PS^PG^(
+                stato_possibile(Conoscenza, Stato, PS),
+                giocata_possibile_stato(Giocatore, Stato, Informazioni, Evento, PG),
+                controllo_protezione(Giocatore, Giocatori, Protetti, Evento),
+                P is PS * PG
+            ),
+            PesoTotale
+        ).
 
 controllo_protezione(Giocatore, Giocatori, Protetti, Evento) :-
     % Se TUTTI i giocatori avversari sono protetti, allora non si può bersagliare nessuno e si deve poter usare il fallback
@@ -33,10 +33,9 @@ controllo_protezione(Giocatore, Giocatori, Protetti, Evento) :-
              bersaglio(G, Evento)
            ),
         % evita versione "senza bersaglio" se esiste quella con bersaglio
-        (
-            usa_carta(Carta, Evento),
-            carta_con_bersaglio(Carta) ->
-                Evento \= carta_giocata(_, Carta)
+        \+ (
+            Evento = carta_giocata(_, Carta),
+            carta_con_bersaglio(Carta)
         )
     ).
 
