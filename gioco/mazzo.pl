@@ -1,4 +1,4 @@
-:- module(mazzo, [carta/1, valore/2, numero_copie/2, carta_con_bersaglio/1, lista_carte/1]).
+:- module(mazzo, [carta/1, valore/2, numero_copie/2, carta_con_bersaglio/1]).
 
 % Definizione delle carte
 carta(spia).
@@ -38,7 +38,3 @@ carta_con_bersaglio(prete).
 carta_con_bersaglio(barone).
 carta_con_bersaglio(principe).
 carta_con_bersaglio(re).
-
-% Si tratta di una lista di carte
-lista_carte(L) :-
-    forall(member(M, L), carta(M)).

@@ -590,12 +590,12 @@ test_cardset_complemento :-
     check(complemento_vuoto, cardset_complemento(CP, CV)).
 
 test_turni_possibili :-
-  inizia(pippo, pluto, paperino),
-  rg(contessa),
-  rg(prete, pippo),
-  rv(paperino, guardia),
-  findall(T-P, (corrente(C), turno_possibile(C, T, P), usa_carta(principe, T)), LT),
-  % visto che la lista è ordinata per peso, l'auto principe deve essere sempre la possibilità più sicura
-  check(auto_principe_assicurato, LT = [carta_giocata(paperino, principe, paperino, guardia)-_Peso  |_]),
-  check(no_evento_senza_bersaglio, \+ member(carta_giocata(paperino, principe), LT)),
-  finisci.
+    inizia(pippo, pluto, paperino),
+    rg(contessa),
+    rg(prete, pippo),
+    rv(paperino, guardia),
+    findall(T-P, (corrente(C), turno_possibile(C, T, P), usa_carta(principe, T)), LT),
+    % visto che la lista è ordinata per peso, l'auto principe deve essere sempre la possibilità più sicura
+    check(auto_principe_assicurato, LT = [carta_giocata(paperino, principe, paperino, guardia)-_Peso  |_]),
+    check(no_evento_senza_bersaglio, \+ member(carta_giocata(paperino, principe), LT)),
+    finisci.

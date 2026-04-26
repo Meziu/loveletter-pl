@@ -14,8 +14,7 @@ occorrenze_carta_in_mano(Conoscenza, Giocatore, Coppie, NStati) :-
     ),
     aggregate_all(bag(C-N), (
                       carta(C),
-                      aggregate_all(sum(Peso), member(C-Peso, CarteGiocatore), N)
-                            ), CoppieGrezze),
+                      aggregate_all(sum(Peso), member(C-Peso, CarteGiocatore), N)), CoppieGrezze),
     transpose_pairs(CoppieGrezze, CoppieGrezze2),
     reverse(CoppieGrezze2, Coppie),
     pairs_values(CoppieGrezze, Vs),
