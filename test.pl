@@ -559,7 +559,8 @@ test_repl :-
     check(repl_pippo_guardia_pluto, (
               inizia(pippo, pluto, paperins),
               rg(guardia, pluto, re, true),
-              p_mano(pippo)
+              p_mano(pippo),
+              finisci
                                     )).
 
 test_prossimo_turno :-

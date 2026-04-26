@@ -1,7 +1,7 @@
 :- module(cardset, [cardset/1, cardset_pieno/1, cardset_vuoto/1, cardset_complemento/2, rimuovi_da_cardset/4, aggiungi_a_cardset/4, controllo_posizione/3, pesca_informata_cardset/5, carta_presente/2, copie_carta/3, carte_in_cardset/2]).
 
 :- use_module(mazzo),
-  use_module('conoscenza/informazione').
+use_module('conoscenza/informazione').
 
 % Cardset lista di coppie carta-conteggio, es: [spia-1, guardia-3, prete-2, ...]
 
@@ -33,28 +33,28 @@ complementare(Carta-N1, Carta-N2) :-
 % Controllo del posizionamento delle carte.
 % Non richiede giocatore o stati precedenti, utile durante azioni di pesca generiche.
 controllo_posizione(Carta, Info, Cardset) :-
-  % Controllo di pesca alla posizione esatta
-  carte_in_cardset(Cardset, PosizioneNelMazzo),
-  \+ (
-        member(carta_in_posizione(CartaPos, PosizioneNelMazzo), Info),
-        dif(Carta, CartaPos)
-    ),
-  % Controllo che non si usino copie extra ad una posizione quando si sa che devono essere in un altra.
-  \+ (
-        aggregate_all(count,
-                      (
-                          member(carta_in_posizione(Carta, PosVincolo), Info),
-                          PosVincolo < PosizioneNelMazzo
-                      ),
-                      N),
-        N > 0,
-        copie_carta(Carta, Cardset, Copie),
-        Copie =< N
-    ).
+    % Controllo di pesca alla posizione esatta
+    carte_in_cardset(Cardset, PosizioneNelMazzo),
+    \+ (
+           member(carta_in_posizione(CartaPos, PosizioneNelMazzo), Info),
+           dif(Carta, CartaPos)
+       ),
+    % Controllo che non si usino copie extra ad una posizione quando si sa che devono essere in un altra.
+    \+ (
+           aggregate_all(count,
+                         (
+                             member(carta_in_posizione(Carta, PosVincolo), Info),
+                             PosVincolo < PosizioneNelMazzo
+                         ),
+                         N),
+           N > 0,
+           copie_carta(Carta, Cardset, Copie),
+           Copie =< N
+       ).
 
 pesca_informata_cardset(C, I, M1, M2, Peso) :-
-  controllo_posizione(C, I, M1),
-  rimuovi_da_cardset(C, M1, M2, Peso).
+    controllo_posizione(C, I, M1),
+    rimuovi_da_cardset(C, M1, M2, Peso).
 
 % Rimuove una carta dal cardset.
 % Restituisce il numero di copie presenti prima della rimozione.
