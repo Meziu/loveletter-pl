@@ -79,9 +79,9 @@ bersaglio(Bersaglio, carta_giocata(_, re, Bersaglio, _, _)).
 
 % Eventi con eliminazione di un giocatore.
 % Ogni eliminazione implica anche che una carta esca dal gioco.
-eliminato(Eliminato, CartaEliminata, carta_giocata(_, guardia, Eliminato, CartaEliminata, true)).     % solo con true si elimina un giocatore
+eliminato(Eliminato, CartaEliminata, carta_giocata(_, guardia, Eliminato, CartaEliminata, true)).        % solo con true si elimina un giocatore
 eliminato(Eliminato, CartaEliminata, carta_giocata(_, barone, _, Eliminato, CartaEliminata)).
-eliminato(Eliminato, principessa, carta_giocata(_, principe, Eliminato, principessa)).     % implica eliminazione solo se si scarta la principessa
+eliminato(Eliminato, principessa, carta_giocata(_, principe, Eliminato, principessa)).        % implica eliminazione solo se si scarta la principessa
 eliminato(Eliminato, CartaEliminata, carta_giocata(Eliminato, principessa, CartaEliminata)).
 
 % Eventi senza conoscenza totale, dal punto di vista dell'osservatore.
