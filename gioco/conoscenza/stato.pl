@@ -1,6 +1,7 @@
 :- module(stato, [stato_possibile/3, mani/2, mano/3, mazzo/2, carta_rimossa/2]).
 
 :- use_module('../mazzo'),
+use_module('../conoscenza'),
 use_module(informazione),
 use_module('../cardset').
 

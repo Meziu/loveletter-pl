@@ -100,12 +100,11 @@ controllo_posizione(Carta, Info, Cardset) :-
            Copie =< N
        ).
 
+vincolo_precedente(Carta, PosMax, carta_in_posizione(Carta, P)) :-
+    P < PosMax.
+
 conta_vincoli_pos_precedenti(Carta, PosMax, Info, N) :-
-    include(
-        [carta_in_posizione(Carta, P)]>>(P < PosMax),
-        Info,
-        Matching
-    ),
+    include(vincolo_precedente(Carta, PosMax), Info, Matching),
     length(Matching, N).
 
 pesca_informata_cardset(C, I, M1, M2, Peso) :-
