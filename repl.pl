@@ -5,6 +5,7 @@
 :- use_module('gioco/conoscenza'),
 use_module('gioco/conoscenza/evento'),
 use_module('gioco/conoscenza/stato'),
+use_module('gioco/simulazione'),
 use_module(statistica).
 
 :- dynamic storia/1.
